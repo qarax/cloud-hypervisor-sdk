@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct VmConfig {
     #[serde(rename = "cpus", skip_serializing_if = "Option::is_none")]
     pub cpus: Option<Box<crate::models::CpusConfig>>,
@@ -47,31 +47,12 @@ pub struct VmConfig {
 }
 
 impl VmConfig {
-    /// Virtual machine configuration
     pub fn new(payload: crate::models::PayloadConfig) -> VmConfig {
         VmConfig {
             cpus: None,
             memory: None,
             payload: Box::new(payload),
-            rate_limit_groups: None,
-            disks: None,
-            net: None,
-            rng: None,
-            balloon: None,
-            fs: None,
-            pmem: None,
-            serial: None,
-            console: None,
-            debug_console: None,
-            devices: None,
-            vdpa: None,
-            vsock: None,
-            sgx_epc: None,
-            numa: None,
-            iommu: None,
-            watchdog: None,
-            platform: None,
-            tpm: None,
+            ..Default::default()
         }
     }
 }

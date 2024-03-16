@@ -19,7 +19,7 @@ impl Default for CpuTopology {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct CpusConfig {
     pub boot_vcpus: i32,
     pub max_vcpus: i32,
@@ -28,20 +28,6 @@ pub struct CpusConfig {
     pub max_phys_bits: Option<i32>,
     pub affinity: Option<Vec<CpuAffinity>>, 
     pub features: Option<Box<CpuFeatures>>,
-}
-
-impl Default for CpusConfig {
-    fn default() -> Self {
-        Self {
-            boot_vcpus: 1,
-            max_vcpus: 1,
-            topology: Some(Box::new(CpuTopology::default())),
-            kvm_hyperv: None,
-            max_phys_bits: None,
-            affinity: None,
-            features: None,
-        }
-    }
 }
 
 impl CpusConfig {

@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct DiskConfig {
     #[serde(rename = "path")]
     pub path: String,
@@ -34,19 +34,7 @@ impl DiskConfig {
     pub fn new(path: String) -> DiskConfig {
         DiskConfig {
             path,
-            readonly: None,
-            direct: None,
-            iommu: None,
-            num_queues: None,
-            queue_size: None,
-            vhost_user: None,
-            vhost_socket: None,
-            rate_limiter_config: None,
-            pci_segment: None,
-            id: None,
-            serial: None,
-            rate_limit_group: None,
-            affinity: None,
+            ..Default::default()
         }
     }
 }

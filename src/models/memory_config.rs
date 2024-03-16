@@ -1,4 +1,8 @@
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+use serde::{Deserialize, Serialize};
+
+use super::MemoryZoneConfig;
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct MemoryConfig {
     #[serde(rename = "size")]
     pub size: i64,
@@ -21,25 +25,14 @@ pub struct MemoryConfig {
     #[serde(rename = "thp", skip_serializing_if = "Option::is_none")]
     pub thp: Option<bool>,
     #[serde(rename = "zones", skip_serializing_if = "Option::is_none")]
-    pub zones: Option<Vec<crate::models::MemoryZoneConfig>>,
+    pub zones: Option<Vec<MemoryZoneConfig>>,
 }
 
 impl MemoryConfig {
     pub fn new(size: i64) -> MemoryConfig {
         MemoryConfig {
             size,
-            hotplug_size: None,
-            hotplugged_size: None,
-            mergeable: None,
-            hotplug_method: None,
-            shared: None,
-            hugepages: None,
-            hugepage_size: None,
-            prefault: None,
-            thp: None,
-            zones: None,
+            ..Default::default()
         }
     }
 }
-
-
