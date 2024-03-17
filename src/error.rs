@@ -10,4 +10,9 @@ pub enum Error {
     HttpHandshakeError(#[from] HyperError),
     #[error("HTTP client not initialized: {message}")]
     ClientNotInitialized { message: String },
+    #[error("Cloud Hyperisor API error, status: {0}, error: {1}")]
+    CloudHypervisorApiError(u16, String),
+
+    #[error("Unexpected error: {0}")]
+    Other(String),
 }

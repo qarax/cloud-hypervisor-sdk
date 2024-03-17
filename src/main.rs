@@ -14,8 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    // Size in gb
-    let memory_config = MemoryConfig::new(2);
+    let memory_config = MemoryConfig::new(1 * 1024 * 1024 * 1024);
 
     let vm_config = VmConfig {
         cpus: Some(Box::new(cpus_config)),
@@ -36,6 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut machine = Machine::create(machine_config).await?;
     machine.create_vm(&vm_config).await?;
+    machine.boot_vm().await?;
 
     Ok(())
 }

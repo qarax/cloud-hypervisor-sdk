@@ -5,10 +5,12 @@ use crate::{
     error::Error,
     models::VmConfig,
 };
-use bytes::Bytes;
-use http_body_util::{combinators::BoxBody, Full};
-use hyper::Request;
+use bytes::{Bytes, BytesMut};
+use futures::stream::StreamExt;
+use http_body_util::{combinators::BoxBody, Empty, Full};
+use hyper::{body::Incoming, Request, Response};
 use tokio::net::UnixStream;
+use tracing::{debug, info};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -22,7 +24,6 @@ pub struct MachineConfig<'m> {
 pub struct Machine<'m> {
     config: MachineConfig<'m>,
     pub client: Option<HttpClient>,
-    pid: Option<u32>,
 }
 
 impl<'m> Machine<'m> {
@@ -35,17 +36,14 @@ impl<'m> Machine<'m> {
         let mut machine = Machine {
             config: config.clone(),
             client: None,
-            pid: None,
         };
-        Self::start(&machine).await?;
 
-        let client = Self::build_client(&config.socket_path).await?;
-        machine.client = Some(client);
+        Self::start(&mut machine).await?;
 
         Ok(machine)
     }
 
-    async fn start(&self) -> Result<(), Error> {
+    async fn start(&mut self) -> Result<(), Error> {
         let tmux_cmd = self.generate_cloud_hypervisor_cmd();
 
         let output = tokio::process::Command::new("sh")
@@ -63,6 +61,9 @@ impl<'m> Machine<'m> {
             )
             .into());
         }
+
+        let client = Self::build_client(&self.config.socket_path).await?;
+        self.client = Some(client);
 
         println!("Cloud Hypervisor started successfully in a tmux session, you can attach to it using:\n\n tmux attach -t vm_{}\n", self.config.vm_id);
         Ok(())
@@ -85,7 +86,7 @@ impl<'m> Machine<'m> {
     }
 
     async fn build_client(socket_path: &Path) -> Result<HttpClient, Error> {
-        println!(
+        info!(
             "connecting HTTP clinet to Cloud Hypervisor at {:?}...",
             socket_path
         );
@@ -98,7 +99,7 @@ impl<'m> Machine<'m> {
 
         sender.ready().await?;
 
-        println!(
+        info!(
             "HTTP client connected to Cloud Hypervisor at {:?}",
             socket_path
         );
@@ -121,12 +122,59 @@ impl<'m> Machine<'m> {
             .unwrap();
 
         // Pretty print the request
-        println!("{:#?}", request);
+        debug!("{:#?}", request);
 
         // Show context of body
-        println!("{:?}", body.clone());
+        debug!("{:?}", body.clone());
 
-        sender.send_request(request).await?;
+        let response = sender.send_request(request).await?;
+        debug!("{:#?}", response);
+
+        if !response.status().is_success() {
+            let status = response.status();
+            return match Self::read_response_body(response).await {
+                Ok(body_string) => Err(Error::CloudHypervisorApiError(status.into(), body_string)),
+                Err(e) => Err(Error::Other(e.to_string())),
+            };
+        }
+
         Ok(())
+    }
+
+    pub async fn boot_vm(&mut self) -> Result<(), Error> {
+        let client = self.client.as_mut().unwrap();
+        let sender = client.sender();
+
+        let request = Request::builder()
+            .method("PUT")
+            .uri(format!("http://localhost/api/v1/vm.boot"))
+            .header("Accept", "application/json")
+            .body(BoxBody::new(Empty::new()))
+            .unwrap();
+
+        let response = sender.send_request(request).await?;
+        debug!("{:#?}", response);
+
+        // read response body
+        if !response.status().is_success() {
+            let status = response.status();
+
+            return match Self::read_response_body(response).await {
+                Ok(body_string) => Err(Error::CloudHypervisorApiError(status.into(), body_string)),
+                Err(e) => Err(Error::Other(e.to_string())),
+            };
+        }
+        Ok(())
+    }
+
+    async fn read_response_body(response: Response<Incoming>) -> Result<String, Error> {
+        let mut body_bytes = http_body_util::BodyStream::new(response.into_body());
+        let mut bytes = BytesMut::new();
+        while let Some(chunk) = body_bytes.next().await {
+            let chunk = chunk?;
+            bytes.extend_from_slice(&chunk.into_data().expect("chunk is not data"));
+        }
+
+        String::from_utf8(bytes.to_vec()).map_err(|e| Error::Other(e.to_string()))
     }
 }
