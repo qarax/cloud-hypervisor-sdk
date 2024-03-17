@@ -3,7 +3,7 @@ use std::{borrow::Cow, path::Path};
 use crate::{
     client::{HttpClient, TokioIo},
     error::Error,
-    models::VmConfig,
+    models::{VmConfig, VmInfo},
 };
 use bytes::{Bytes, BytesMut};
 use futures::stream::StreamExt;
@@ -43,68 +43,12 @@ impl<'m> Machine<'m> {
         Ok(machine)
     }
 
-    async fn start(&mut self) -> Result<(), Error> {
-        let tmux_cmd = self.generate_cloud_hypervisor_cmd();
-
-        let output = tokio::process::Command::new("sh")
-            .arg("-c")
-            .arg(&tmux_cmd)
-            .output()
-            .await?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            eprintln!("Failed to start Cloud Hypervisor in tmux: {}", stderr);
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to start Cloud Hypervisor in tmux: {}", stderr),
-            )
-            .into());
-        }
-
-        let client = Self::build_client(&self.config.socket_path).await?;
-        self.client = Some(client);
-
-        println!("Cloud Hypervisor started successfully in a tmux session, you can attach to it using:\n\n tmux attach -t vm_{}\n", self.config.vm_id);
-        Ok(())
-    }
-
-    fn generate_cloud_hypervisor_cmd(&self) -> String {
-        let ch_cmd = format!(
-            "{} --api-socket {}",
-            self.config
-                .exec_path
-                .to_str()
-                .expect("exec_path is not a valid UTF-8 string"),
-            self.config.socket_path.to_string_lossy()
-        );
-
-        let session_name = format!("vm_{}", self.config.vm_id);
-        let tmux_cmd = format!("tmux new-session -d -s '{}' {}", session_name, ch_cmd);
-
-        tmux_cmd
-    }
-
-    async fn build_client(socket_path: &Path) -> Result<HttpClient, Error> {
-        info!(
-            "connecting HTTP clinet to Cloud Hypervisor at {:?}...",
-            socket_path
-        );
-        let stream = UnixStream::connect(socket_path).await?;
-        let io = TokioIo::new(stream);
-        let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await?;
-
-        // TODO: handle error
-        tokio::spawn(conn);
-
-        sender.ready().await?;
-
-        info!(
-            "HTTP client connected to Cloud Hypervisor at {:?}",
-            socket_path
-        );
-
-        Ok(HttpClient::new(sender))
+    pub async fn connect(config: MachineConfig<'m>) -> Result<Machine<'m>, Error> {
+        let client = Self::build_client(&config.socket_path).await?;
+        Ok(Machine {
+            config,
+            client: Some(client),
+        })
     }
 
     pub async fn create_vm(&mut self, vm_config: &VmConfig) -> Result<(), Error> {
@@ -177,4 +121,101 @@ impl<'m> Machine<'m> {
 
         String::from_utf8(bytes.to_vec()).map_err(|e| Error::Other(e.to_string()))
     }
+
+    async fn start(&mut self) -> Result<(), Error> {
+        let tmux_cmd = self.generate_cloud_hypervisor_cmd();
+
+        let output = tokio::process::Command::new("sh")
+            .arg("-c")
+            .arg(&tmux_cmd)
+            .output()
+            .await?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            eprintln!("Failed to start Cloud Hypervisor in tmux: {}", stderr);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to start Cloud Hypervisor in tmux: {}", stderr),
+            )
+            .into());
+        }
+
+        let client = Self::build_client(&self.config.socket_path).await?;
+        self.client = Some(client);
+
+        println!("Cloud Hypervisor started successfully in a tmux session, you can attach to it using:\n\n tmux attach -t vm_{}\n", self.config.vm_id);
+        Ok(())
+    }
+
+    pub async fn get_vm_info(&mut self) -> Result<VmInfo, Error> {
+        // TODO: do I really need to borrow
+        let client = self.client.as_mut().unwrap();
+        let sender = client.sender();
+
+        let request = Request::builder()
+            .method("GET")
+            .uri(format!("http://localhost/api/v1/vm.info"))
+            .header("Accept", "application/json")
+            .body(BoxBody::new(Empty::new()))
+            .unwrap();
+
+        let response = sender.send_request(request).await?;
+        debug!("{:#?}", response);
+
+        // read response body
+        if !response.status().is_success() {
+            let status = response.status();
+
+            return match Self::read_response_body(response).await {
+                Ok(body_string) => Err(Error::CloudHypervisorApiError(status.into(), body_string)),
+                Err(e) => Err(Error::Other(e.to_string())),
+            };
+        }
+
+        // Extract State field from response
+        let body = Self::read_response_body(response).await?;
+        let vm_info: VmInfo = serde_json::from_str(&body).map_err(|e| Error::Other(e.to_string()))?;
+
+        Ok(vm_info)
+    }
+
+    fn generate_cloud_hypervisor_cmd(&self) -> String {
+        let ch_cmd = format!(
+            "{} --api-socket {}",
+            self.config
+                .exec_path
+                .to_str()
+                .expect("exec_path is not a valid UTF-8 string"),
+            self.config.socket_path.to_string_lossy()
+        );
+
+        let session_name = format!("vm_{}", self.config.vm_id);
+        let tmux_cmd = format!("tmux new-session -d -s '{}' {}", session_name, ch_cmd);
+
+        tmux_cmd
+    }
+
+    async fn build_client(socket_path: &Path) -> Result<HttpClient, Error> {
+        info!(
+            "connecting HTTP clinet to Cloud Hypervisor at {:?}...",
+            socket_path
+        );
+        let stream = UnixStream::connect(socket_path).await?;
+        let io = TokioIo::new(stream);
+        let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await?;
+
+        // TODO: handle error
+        tokio::spawn(conn);
+
+        sender.ready().await?;
+
+        info!(
+            "HTTP client connected to Cloud Hypervisor at {:?}",
+            socket_path
+        );
+
+        Ok(HttpClient::new(sender))
+    }
+
 }

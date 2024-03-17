@@ -37,5 +37,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     machine.create_vm(&vm_config).await?;
     machine.boot_vm().await?;
 
+    let vm_info = machine.get_vm_info().await?;
+    println!("{:?}", vm_info.state);
+
     Ok(())
 }
