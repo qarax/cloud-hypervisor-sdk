@@ -8,11 +8,6 @@ pub struct CpuAffinity {
 
 impl CpuAffinity {
     pub fn new(vcpu: i32, host_cpus: Vec<i32>) -> CpuAffinity {
-        CpuAffinity {
-            vcpu,
-            host_cpus,
-        }
+        CpuAffinity { vcpu, host_cpus }
     }
 }
-
-

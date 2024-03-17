@@ -1,4 +1,8 @@
-use std::{convert::Infallible, pin::Pin, task::{Context, Poll}};
+use std::{
+    convert::Infallible,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
 use hyper::client::conn::http1::SendRequest;
 
@@ -15,8 +19,8 @@ impl HttpClient {
         Self { sender }
     }
 
-    pub fn sender(&self) -> &SendRequest<BoxedBody> {
-        &self.sender
+    pub fn sender(&mut self) -> &mut SendRequest<BoxedBody> {
+        &mut self.sender
     }
 }
 

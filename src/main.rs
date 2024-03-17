@@ -29,13 +29,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let machine_config = MachineConfig {
-        vm_config,
         vm_id: Uuid::new_v4(),
-        socket_path: Cow::Owned(PathBuf::from("./cloud-hypervisor.sock")),
+        socket_path: Cow::Owned(PathBuf::from("/tmp/cloud-hypervisor.sock")),
         exec_path: Cow::Owned(PathBuf::from("./cloud-hypervisor")),
     };
 
-    Machine::create(machine_config).await?;
+    let mut machine = Machine::create(machine_config).await?;
+    machine.create_vm(&vm_config).await?;
 
     Ok(())
 }

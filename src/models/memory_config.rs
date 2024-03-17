@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use super::MemoryZoneConfig;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]

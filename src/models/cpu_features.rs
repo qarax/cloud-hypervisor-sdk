@@ -6,10 +6,6 @@ pub struct CpuFeatures {
 
 impl CpuFeatures {
     pub fn new() -> CpuFeatures {
-        CpuFeatures {
-            amx: None,
-        }
+        CpuFeatures { amx: None }
     }
 }
-
-

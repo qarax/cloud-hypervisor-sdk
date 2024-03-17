@@ -23,10 +23,15 @@ impl Default for CpuTopology {
 pub struct CpusConfig {
     pub boot_vcpus: i32,
     pub max_vcpus: i32,
+    #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
     pub topology: Option<Box<CpuTopology>>,
+    #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
     pub kvm_hyperv: Option<bool>,
+    #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
     pub max_phys_bits: Option<i32>,
-    pub affinity: Option<Vec<CpuAffinity>>, 
+    #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
+    pub affinity: Option<Vec<CpuAffinity>>,
+    #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
     pub features: Option<Box<CpuFeatures>>,
 }
 

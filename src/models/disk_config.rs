@@ -16,7 +16,10 @@ pub struct DiskConfig {
     pub vhost_user: Option<bool>,
     #[serde(rename = "vhost_socket", skip_serializing_if = "Option::is_none")]
     pub vhost_socket: Option<String>,
-    #[serde(rename = "rate_limiter_config", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "rate_limiter_config",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub rate_limiter_config: Option<Box<crate::models::RateLimiterConfig>>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
     pub pci_segment: Option<i32>,
@@ -38,5 +41,3 @@ impl DiskConfig {
         }
     }
 }
-
-

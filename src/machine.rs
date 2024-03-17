@@ -1,16 +1,18 @@
-use std::{borrow::Cow, path::Path, process::Stdio};
+use std::{borrow::Cow, path::Path};
 
 use crate::{
     client::{HttpClient, TokioIo},
     error::Error,
     models::VmConfig,
 };
+use bytes::Bytes;
+use http_body_util::{combinators::BoxBody, Full};
+use hyper::Request;
 use tokio::net::UnixStream;
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 pub struct MachineConfig<'m> {
-    pub vm_config: VmConfig,
     pub vm_id: Uuid,
     pub socket_path: Cow<'m, Path>,
     pub exec_path: Cow<'m, Path>,
@@ -19,7 +21,7 @@ pub struct MachineConfig<'m> {
 #[derive(Debug)]
 pub struct Machine<'m> {
     config: MachineConfig<'m>,
-    client: Option<HttpClient>,
+    pub client: Option<HttpClient>,
     pid: Option<u32>,
 }
 
@@ -44,30 +46,30 @@ impl<'m> Machine<'m> {
     }
 
     async fn start(&self) -> Result<(), Error> {
-        let tmux_cmd = self.generate_cloud_hypervisor_cmd(&self.config.vm_config);
-        println!("starting VM with tmux command: {}", tmux_cmd);
-    
+        let tmux_cmd = self.generate_cloud_hypervisor_cmd();
+
         let output = tokio::process::Command::new("sh")
             .arg("-c")
             .arg(&tmux_cmd)
             .output()
             .await?;
-    
+
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             eprintln!("Failed to start Cloud Hypervisor in tmux: {}", stderr);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!("Failed to start Cloud Hypervisor in tmux: {}", stderr),
-            ).into());
+            )
+            .into());
         }
-    
+
         println!("Cloud Hypervisor started successfully in a tmux session, you can attach to it using:\n\n tmux attach -t vm_{}\n", self.config.vm_id);
         Ok(())
     }
-    
-    fn generate_cloud_hypervisor_cmd(&self, vm_config: &VmConfig) -> String {
-        let mut ch_cmd = format!(
+
+    fn generate_cloud_hypervisor_cmd(&self) -> String {
+        let ch_cmd = format!(
             "{} --api-socket {}",
             self.config
                 .exec_path
@@ -76,24 +78,6 @@ impl<'m> Machine<'m> {
             self.config.socket_path.to_string_lossy()
         );
 
-        if let Some(kernel_path) = &vm_config.payload.kernel {
-            ch_cmd += &format!(" --kernel {}", kernel_path);
-        }
-        if let Some(cpus) = &vm_config.cpus {
-            ch_cmd += &format!(" --cpus boot={}", cpus.boot_vcpus);
-        }
-        if let Some(memory) = &vm_config.memory {
-            ch_cmd += &format!(" --memory size={}G", memory.size);
-        }
-        if let Some(initramfs_path) = &vm_config.payload.initramfs {
-            ch_cmd += &format!(" --initramfs {}", initramfs_path);
-        }
-        if let Some(disks) = &vm_config.disks {
-            for disk in disks {
-                ch_cmd += &format!(" --disk path={}", disk.path);
-            }
-        }
-
         let session_name = format!("vm_{}", self.config.vm_id);
         let tmux_cmd = format!("tmux new-session -d -s '{}' {}", session_name, ch_cmd);
 
@@ -101,15 +85,48 @@ impl<'m> Machine<'m> {
     }
 
     async fn build_client(socket_path: &Path) -> Result<HttpClient, Error> {
-        println!("connecting HTTP clinet to Cloud Hypervisor at {:?}...", socket_path);
+        println!(
+            "connecting HTTP clinet to Cloud Hypervisor at {:?}...",
+            socket_path
+        );
         let stream = UnixStream::connect(socket_path).await?;
-        println!("HTTP client connected to Cloud Hypervisor at {:?}", socket_path);
         let io = TokioIo::new(stream);
-        let (sender, conn) = hyper::client::conn::http1::handshake(io).await?;
+        let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await?;
 
         // TODO: handle error
         tokio::spawn(conn);
 
+        sender.ready().await?;
+
+        println!(
+            "HTTP client connected to Cloud Hypervisor at {:?}",
+            socket_path
+        );
+
         Ok(HttpClient::new(sender))
+    }
+
+    pub async fn create_vm(&mut self, vm_config: &VmConfig) -> Result<(), Error> {
+        let client = self.client.as_mut().unwrap();
+        let sender = client.sender();
+        let json_vm_config = serde_json::to_vec(vm_config).unwrap();
+        let body = Bytes::from(json_vm_config);
+
+        let request = Request::builder()
+            .method("PUT")
+            .uri(format!("http://localhost/api/v1/vm.create"))
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(BoxBody::new(Full::new(body.clone())))
+            .unwrap();
+
+        // Pretty print the request
+        println!("{:#?}", request);
+
+        // Show context of body
+        println!("{:?}", body.clone());
+
+        sender.send_request(request).await?;
+        Ok(())
     }
 }
