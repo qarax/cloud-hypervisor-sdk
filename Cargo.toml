@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bytes = "1.5.0"
 futures = "0.3.30"
+http = "1.1.0"
 http-body-util = "0.1.0"
 hyper = { version = "1.2.0", features = ["client", "http2", "http1"] }
 hyper-util = { version = "0.1.3" }

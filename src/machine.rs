@@ -30,7 +30,7 @@ impl<'m> Machine<'m> {
     pub async fn create(config: MachineConfig<'m>) -> Result<Machine<'m>, Error> {
         // Remove existing socket file
         if config.socket_path.exists() {
-            std::fs::remove_file(&config.socket_path)?;
+            tokio::fs::remove_file(&config.socket_path).await?;
         }
 
         let mut machine = Machine {
@@ -52,9 +52,14 @@ impl<'m> Machine<'m> {
     }
 
     pub async fn create_vm(&mut self, vm_config: &VmConfig) -> Result<(), Error> {
-        let client = self.client.as_mut().unwrap();
+        let client = match self.client.as_mut() {
+            Some(client) => client,
+            None => Err(Error::Other("HTTP client not initialized".to_string()))?,
+        };
+
         let sender = client.sender();
-        let json_vm_config = serde_json::to_vec(vm_config).unwrap();
+        let json_vm_config =
+            serde_json::to_vec(vm_config).map_err(|e| Error::Other(e.to_string()))?;
         let body = Bytes::from(json_vm_config);
 
         let request = Request::builder()
@@ -62,8 +67,7 @@ impl<'m> Machine<'m> {
             .uri(format!("http://localhost/api/v1/vm.create"))
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .body(BoxBody::new(Full::new(body.clone())))
-            .unwrap();
+            .body(BoxBody::new(Full::new(body.clone())))?;
 
         // Pretty print the request
         debug!("{:#?}", request);
@@ -86,15 +90,17 @@ impl<'m> Machine<'m> {
     }
 
     pub async fn boot_vm(&mut self) -> Result<(), Error> {
-        let client = self.client.as_mut().unwrap();
+        let client = match self.client.as_mut() {
+            Some(client) => client,
+            None => Err(Error::Other("HTTP client not initialized".to_string()))?,
+        };
         let sender = client.sender();
 
         let request = Request::builder()
             .method("PUT")
             .uri(format!("http://localhost/api/v1/vm.boot"))
             .header("Accept", "application/json")
-            .body(BoxBody::new(Empty::new()))
-            .unwrap();
+            .body(BoxBody::new(Empty::new()))?;
 
         let response = sender.send_request(request).await?;
         debug!("{:#?}", response);
@@ -149,16 +155,17 @@ impl<'m> Machine<'m> {
     }
 
     pub async fn get_vm_info(&mut self) -> Result<VmInfo, Error> {
-        // TODO: do I really need to borrow
-        let client = self.client.as_mut().unwrap();
+        let client = self
+            .client
+            .as_mut()
+            .ok_or_else(|| Error::Other("HTTP client not initialized".to_string()))?;
         let sender = client.sender();
 
         let request = Request::builder()
             .method("GET")
             .uri(format!("http://localhost/api/v1/vm.info"))
             .header("Accept", "application/json")
-            .body(BoxBody::new(Empty::new()))
-            .unwrap();
+            .body(BoxBody::new(Empty::new()))?;
 
         let response = sender.send_request(request).await?;
         debug!("{:#?}", response);
@@ -175,7 +182,8 @@ impl<'m> Machine<'m> {
 
         // Extract State field from response
         let body = Self::read_response_body(response).await?;
-        let vm_info: VmInfo = serde_json::from_str(&body).map_err(|e| Error::Other(e.to_string()))?;
+        let vm_info: VmInfo =
+            serde_json::from_str(&body).map_err(|e| Error::Other(e.to_string()))?;
 
         Ok(vm_info)
     }
@@ -217,5 +225,4 @@ impl<'m> Machine<'m> {
 
         Ok(HttpClient::new(sender))
     }
-
 }
