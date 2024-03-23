@@ -69,21 +69,13 @@ impl<'m> Machine<'m> {
             .header("Content-Type", "application/json")
             .body(BoxBody::new(Full::new(body.clone())))?;
 
-        // Pretty print the request
-        debug!("{:#?}", request);
-
-        // Show context of body
-        debug!("{:?}", body.clone());
-
         let response = sender.send_request(request).await?;
         debug!("{:#?}", response);
 
         if !response.status().is_success() {
-            let status = response.status();
-            return match Self::read_response_body(response).await {
-                Ok(body_string) => Err(Error::CloudHypervisorApiError(status.into(), body_string)),
-                Err(e) => Err(Error::Other(e.to_string())),
-            };
+            let status = response.status().as_u16();
+            let body = Self::read_response_body(response).await?;
+            return Err(Error::CloudHypervisorApiError(status, body));
         }
 
         Ok(())
@@ -102,18 +94,16 @@ impl<'m> Machine<'m> {
             .header("Accept", "application/json")
             .body(BoxBody::new(Empty::new()))?;
 
+        // read response body
         let response = sender.send_request(request).await?;
         debug!("{:#?}", response);
 
-        // read response body
         if !response.status().is_success() {
-            let status = response.status();
-
-            return match Self::read_response_body(response).await {
-                Ok(body_string) => Err(Error::CloudHypervisorApiError(status.into(), body_string)),
-                Err(e) => Err(Error::Other(e.to_string())),
-            };
+            let status = response.status().as_u16();
+            let body = Self::read_response_body(response).await?;
+            return Err(Error::CloudHypervisorApiError(status, body));
         }
+
         Ok(())
     }
 
@@ -170,14 +160,10 @@ impl<'m> Machine<'m> {
         let response = sender.send_request(request).await?;
         debug!("{:#?}", response);
 
-        // read response body
         if !response.status().is_success() {
-            let status = response.status();
-
-            return match Self::read_response_body(response).await {
-                Ok(body_string) => Err(Error::CloudHypervisorApiError(status.into(), body_string)),
-                Err(e) => Err(Error::Other(e.to_string())),
-            };
+            let status = response.status().as_u16();
+            let body = Self::read_response_body(response).await?;
+            return Err(Error::CloudHypervisorApiError(status, body));
         }
 
         // Extract State field from response
