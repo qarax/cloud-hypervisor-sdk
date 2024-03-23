@@ -3,8 +3,6 @@ use std::{borrow::Cow, path::PathBuf};
 use cloud_hypervisor_sdk::machine::{Machine, MachineConfig};
 use uuid::Uuid;
 
-// TODO make this receive the path to the socket as an argument
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let machine_config = MachineConfig {
@@ -13,8 +11,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         exec_path: Cow::Owned(PathBuf::from("./cloud-hypervisor")),
     };
 
-    let mut machine = Machine::connect(machine_config).await?;
-    let vm_info = machine.get_info().await?;
+    let mut vm = Machine::connect(machine_config).await?;
+    let mut vm_info = vm.get_info().await?;
+    println!("{:?}", vm_info.state);
+    vm.shutdown().await?;
+    vm_info = vm.get_info().await?;
     println!("{:?}", vm_info.state);
 
     Ok(())

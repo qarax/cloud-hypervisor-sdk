@@ -33,11 +33,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         exec_path: Cow::Owned(PathBuf::from("./cloud-hypervisor")),
     };
 
-    let mut machine = Machine::create(machine_config).await?;
-    machine.create_vm(&vm_config).await?;
-    machine.boot_vm().await?;
+    let machine = Machine::start(machine_config).await?;
+    let mut vm = machine.create_vm(vm_config).await?;
+    vm.boot().await?;
 
-    let vm_info = machine.get_vm_info().await?;
+    let vm_info = vm.get_info().await?;
     println!("{:?}", vm_info.state);
 
     Ok(())
