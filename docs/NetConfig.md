@@ -18,7 +18,7 @@ Name | Type | Description | Notes
 **vhost_mode** | Option<**String**> |  | [optional][default to Client]
 **id** | Option<**String**> |  | [optional]
 **pci_segment** | Option<**i32**> |  | [optional]
-**rate_limiter_config** | Option<[**crate::models::RateLimiterConfig**](RateLimiterConfig.md)> |  | [optional]
+**rate_limiter_config** | Option<[**models::RateLimiterConfig**](RateLimiterConfig.md)> |  | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

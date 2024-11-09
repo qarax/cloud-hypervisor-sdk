@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **guest_numa_id** | **i32** |  | 
 **cpus** | Option<**Vec<i32>**> |  | [optional]
-**distances** | Option<[**Vec<crate::models::NumaDistance>**](NumaDistance.md)> |  | [optional]
+**distances** | Option<[**Vec<models::NumaDistance>**](NumaDistance.md)> |  | [optional]
 **memory_zones** | Option<**Vec<String>**> |  | [optional]
 **sgx_epc_sections** | Option<**Vec<String>**> |  | [optional]
 **pci_segments** | Option<**Vec<i32>**> |  | [optional]

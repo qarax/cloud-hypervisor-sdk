@@ -12,15 +12,18 @@ use crate::models;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ReceiveMigrationData {
-    #[serde(rename = "receiver_url")]
-    pub receiver_url: String,
+pub struct LandlockConfig {
+    #[serde(rename = "path")]
+    pub path: String,
+    #[serde(rename = "access")]
+    pub access: String,
 }
 
-impl ReceiveMigrationData {
-    pub fn new(receiver_url: String) -> ReceiveMigrationData {
-        ReceiveMigrationData {
-            receiver_url,
+impl LandlockConfig {
+    pub fn new(path: String, access: String) -> LandlockConfig {
+        LandlockConfig {
+            path,
+            access,
         }
     }
 }

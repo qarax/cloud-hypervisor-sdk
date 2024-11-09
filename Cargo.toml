@@ -1,9 +1,13 @@
 [package]
 name = "cloud-hypervisor-sdk"
 version = "0.1.0"
-authors = ["Beny Zlotnik"]
+authors = ["Benny Zlotnik"]
 license = "Apache 2.0"
 edition = "2021"
+
+[lib]
+name = "cloud_hypervisor_sdk"
+path = "src/lib.rs"
 
 [dependencies]
 bytes = "1.5.0"

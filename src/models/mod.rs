@@ -80,3 +80,7 @@ pub mod vmm_ping_response;
 pub use self::vmm_ping_response::VmmPingResponse;
 pub mod vsock_config;
 pub use self::vsock_config::VsockConfig;
+pub mod pci_segment_config;
+pub use self::pci_segment_config::PciSegmentConfig;
+pub mod landlock_config;
+pub use self::landlock_config::LandlockConfig;

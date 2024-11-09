@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **hugepage_size** | Option<**i64**> |  | [optional]
 **prefault** | Option<**bool**> |  | [optional][default to false]
 **thp** | Option<**bool**> |  | [optional][default to true]
-**zones** | Option<[**Vec<crate::models::MemoryZoneConfig>**](MemoryZoneConfig.md)> |  | [optional]
+**zones** | Option<[**Vec<models::MemoryZoneConfig>**](MemoryZoneConfig.md)> |  | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 
