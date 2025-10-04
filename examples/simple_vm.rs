@@ -2,7 +2,7 @@ use std::{borrow::Cow, path::PathBuf};
 
 use cloud_hypervisor_sdk::{
     machine::{Machine, MachineConfig},
-    models::{memory_config::MemoryConfig, CpusConfig, DiskConfig, PayloadConfig, VmConfig},
+    models::{CpusConfig, DiskConfig, PayloadConfig, VmConfig, memory_config::MemoryConfig},
 };
 use uuid::Uuid;
 
