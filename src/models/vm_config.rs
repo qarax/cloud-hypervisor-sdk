@@ -46,8 +46,6 @@ pub struct VmConfig {
     pub vdpa: Option<Vec<models::VdpaConfig>>,
     #[serde(rename = "vsock", skip_serializing_if = "Option::is_none")]
     pub vsock: Option<Box<models::VsockConfig>>,
-    #[serde(rename = "sgx_epc", skip_serializing_if = "Option::is_none")]
-    pub sgx_epc: Option<Vec<models::SgxEpcConfig>>,
     #[serde(rename = "numa", skip_serializing_if = "Option::is_none")]
     pub numa: Option<Vec<models::NumaConfig>>,
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
@@ -88,7 +86,6 @@ impl VmConfig {
             devices: None,
             vdpa: None,
             vsock: None,
-            sgx_epc: None,
             numa: None,
             iommu: None,
             watchdog: None,
