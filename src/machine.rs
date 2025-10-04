@@ -42,7 +42,6 @@ pub struct VM<'m> {
 
 impl<'m> Machine<'m> {
     /// Starts the Cloud Hypervisor VMM associated with this `Machine`.
-    ///
     /// This method will launch Cloud Hypervisor in a tmux session using the configured `exec_path` and `socket_path`.
     /// It will also establish an HTTP client connection to the Cloud Hypervisor instance.
     pub async fn start(config: MachineConfig<'_>) -> Result<Machine<'_>, Error> {
@@ -61,8 +60,7 @@ impl<'m> Machine<'m> {
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             eprintln!("Failed to start Cloud Hypervisor in tmux: {}", stderr);
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            return Err(std::io::Error::other(
                 format!("Failed to start Cloud Hypervisor in tmux: {}", stderr),
             )
             .into());
@@ -98,7 +96,7 @@ impl<'m> Machine<'m> {
 
         let request = Request::builder()
             .method("PUT")
-            .uri(format!("http://localhost/api/v1/vm.create"))
+            .uri("http://localhost/api/v1/vm.create".to_string())
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .body(BoxBody::new(Full::new(body.clone())))?;
@@ -165,7 +163,7 @@ impl VM<'_> {
 
         let request = Request::builder()
             .method("PUT")
-            .uri(format!("http://localhost/api/v1/vm.boot"))
+            .uri("http://localhost/api/v1/vm.boot".to_string())
             .header("Accept", "application/json")
             .body(BoxBody::new(Empty::new()))?;
 
@@ -190,7 +188,7 @@ impl VM<'_> {
 
         let request = Request::builder()
             .method("GET")
-            .uri(format!("http://localhost/api/v1/vm.info"))
+            .uri("http://localhost/api/v1/vm.info".to_string())
             .header("Accept", "application/json")
             .body(BoxBody::new(Empty::new()))?;
 
@@ -217,7 +215,7 @@ impl VM<'_> {
 
         let request = Request::builder()
             .method("PUT")
-            .uri(format!("http://localhost/api/v1/vm.shutdown"))
+            .uri("http://localhost/api/v1/vm.shutdown".to_string())
             .header("Accept", "application/json")
             .body(BoxBody::new(Empty::new()))?;
 

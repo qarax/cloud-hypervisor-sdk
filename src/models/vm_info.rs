@@ -9,7 +9,6 @@
  */
 
 use crate::models;
-use serde::{Deserialize, Serialize};
 
 /// VmInfo : Virtual Machine information
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
@@ -35,10 +34,12 @@ impl VmInfo {
         }
     }
 }
-///
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum State {
     #[serde(rename = "Created")]
+    #[default]
     Created,
     #[serde(rename = "Running")]
     Running,
@@ -48,8 +49,3 @@ pub enum State {
     Paused,
 }
 
-impl Default for State {
-    fn default() -> State {
-        Self::Created
-    }
-}
