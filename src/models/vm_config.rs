@@ -9,7 +9,6 @@
  */
 
 use crate::models;
-use serde::{Deserialize, Serialize};
 
 /// VmConfig : Virtual machine configuration
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
