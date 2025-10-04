@@ -7,8 +7,8 @@ use crate::{
 };
 use bytes::{Bytes, BytesMut};
 use futures::stream::StreamExt;
-use http_body_util::{combinators::BoxBody, Empty, Full};
-use hyper::{body::Incoming, Request, Response};
+use http_body_util::{Empty, Full, combinators::BoxBody};
+use hyper::{Request, Response, body::Incoming};
 use tokio::{fs, net::UnixStream};
 use tracing::{debug, info};
 use uuid::Uuid;
@@ -70,7 +70,10 @@ impl<'m> Machine<'m> {
 
         let client = Self::build_client(&config.socket_path).await?;
 
-        println!("Cloud Hypervisor started successfully in a tmux session, you can attach to it using:\n\n tmux attach -t vm_{}\n", config.vm_id);
+        println!(
+            "Cloud Hypervisor started successfully in a tmux session, you can attach to it using:\n\n tmux attach -t vm_{}\n",
+            config.vm_id
+        );
         Ok(Machine { config, client })
     }
 
