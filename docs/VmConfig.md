@@ -20,7 +20,6 @@ Name | Type | Description | Notes
 **devices** | Option<[**Vec<models::DeviceConfig>**](DeviceConfig.md)> |  | [optional]
 **vdpa** | Option<[**Vec<models::VdpaConfig>**](VdpaConfig.md)> |  | [optional]
 **vsock** | Option<[**models::VsockConfig**](VsockConfig.md)> |  | [optional]
-**sgx_epc** | Option<[**Vec<models::SgxEpcConfig>**](SgxEpcConfig.md)> |  | [optional]
 **numa** | Option<[**Vec<models::NumaConfig>**](NumaConfig.md)> |  | [optional]
 **iommu** | Option<**bool**> |  | [optional][default to false]
 **watchdog** | Option<**bool**> |  | [optional][default to false]

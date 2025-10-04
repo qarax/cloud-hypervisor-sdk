@@ -5,8 +5,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **tap** | Option<**String**> |  | [optional]
-**ip** | Option<**String**> |  | [optional][default to 192.168.249.1]
-**mask** | Option<**String**> |  | [optional][default to 255.255.255.0]
+**ip** | Option<**String**> | IPv4 or IPv6 address | [optional][default to 192.168.249.1]
+**mask** | Option<**String**> | Must be a valid IPv4 netmask if ip is an IPv4 address or a valid IPv6 netmask if ip is an IPv6 address. | [optional][default to 255.255.255.0]
 **mac** | Option<**String**> |  | [optional]
 **host_mac** | Option<**String**> |  | [optional]
 **mtu** | Option<**i32**> |  | [optional]

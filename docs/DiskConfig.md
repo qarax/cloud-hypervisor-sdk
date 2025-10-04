@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**path** | **String** |  | 
+**path** | Option<**String**> |  | [optional]
 **readonly** | Option<**bool**> |  | [optional][default to false]
 **direct** | Option<**bool**> |  | [optional][default to false]
 **iommu** | Option<**bool**> |  | [optional][default to false]
