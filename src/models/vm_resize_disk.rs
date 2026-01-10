@@ -12,13 +12,20 @@ use crate::models;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct VmRemoveDevice {
+pub struct VmResizeDisk {
+    /// disk identifier
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    /// desired disk size in bytes
+    #[serde(rename = "desired_size", skip_serializing_if = "Option::is_none")]
+    pub desired_size: Option<i64>,
 }
 
-impl VmRemoveDevice {
-    pub fn new() -> VmRemoveDevice {
-        VmRemoveDevice { id: None }
+impl VmResizeDisk {
+    pub fn new() -> VmResizeDisk {
+        VmResizeDisk {
+            id: None,
+            desired_size: None,
+        }
     }
 }

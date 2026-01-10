@@ -26,11 +26,13 @@ Method | HTTP request | Description
 [**vm_info_get**](DefaultApi.md#vm_info_get) | **GET** /vm.info | Returns general information about the cloud-hypervisor Virtual Machine (VM) instance.
 [**vm_receive_migration_put**](DefaultApi.md#vm_receive_migration_put) | **PUT** /vm.receive-migration | Receive a VM migration from URL
 [**vm_remove_device_put**](DefaultApi.md#vm_remove_device_put) | **PUT** /vm.remove-device | Remove a device from the VM
+[**vm_resize_disk_put**](DefaultApi.md#vm_resize_disk_put) | **PUT** /vm.resize-disk | Resize a disk
 [**vm_resize_put**](DefaultApi.md#vm_resize_put) | **PUT** /vm.resize | Resize the VM
 [**vm_resize_zone_put**](DefaultApi.md#vm_resize_zone_put) | **PUT** /vm.resize-zone | Resize a memory zone
 [**vm_restore_put**](DefaultApi.md#vm_restore_put) | **PUT** /vm.restore | Restore a VM from a snapshot.
 [**vm_send_migration_put**](DefaultApi.md#vm_send_migration_put) | **PUT** /vm.send-migration | Send a VM migration to URL
 [**vm_snapshot_put**](DefaultApi.md#vm_snapshot_put) | **PUT** /vm.snapshot | Returns a VM snapshot.
+[**vmm_nmi_put**](DefaultApi.md#vmm_nmi_put) | **PUT** /vmm.nmi | Inject an NMI.
 [**vmm_ping_get**](DefaultApi.md#vmm_ping_get) | **GET** /vmm.ping | Ping the VMM to check for API server availability
 
 
@@ -265,7 +267,7 @@ No authorization required
 
 ## vm_add_device_put
 
-> crate::models::PciDeviceInfo vm_add_device_put(device_config)
+> models::PciDeviceInfo vm_add_device_put(device_config)
 Add a new device to the VM
 
 ### Parameters
@@ -277,7 +279,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -293,7 +295,7 @@ No authorization required
 
 ## vm_add_disk_put
 
-> crate::models::PciDeviceInfo vm_add_disk_put(disk_config)
+> models::PciDeviceInfo vm_add_disk_put(disk_config)
 Add a new disk to the VM
 
 ### Parameters
@@ -305,7 +307,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -321,7 +323,7 @@ No authorization required
 
 ## vm_add_fs_put
 
-> crate::models::PciDeviceInfo vm_add_fs_put(fs_config)
+> models::PciDeviceInfo vm_add_fs_put(fs_config)
 Add a new virtio-fs device to the VM
 
 ### Parameters
@@ -333,7 +335,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -349,7 +351,7 @@ No authorization required
 
 ## vm_add_net_put
 
-> crate::models::PciDeviceInfo vm_add_net_put(net_config)
+> models::PciDeviceInfo vm_add_net_put(net_config)
 Add a new network device to the VM
 
 ### Parameters
@@ -361,7 +363,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -377,7 +379,7 @@ No authorization required
 
 ## vm_add_pmem_put
 
-> crate::models::PciDeviceInfo vm_add_pmem_put(pmem_config)
+> models::PciDeviceInfo vm_add_pmem_put(pmem_config)
 Add a new pmem device to the VM
 
 ### Parameters
@@ -389,7 +391,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -405,7 +407,7 @@ No authorization required
 
 ## vm_add_user_device_put
 
-> crate::models::PciDeviceInfo vm_add_user_device_put(vm_add_user_device)
+> models::PciDeviceInfo vm_add_user_device_put(vm_add_user_device)
 Add a new userspace device to the VM
 
 ### Parameters
@@ -417,7 +419,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -433,7 +435,7 @@ No authorization required
 
 ## vm_add_vdpa_put
 
-> crate::models::PciDeviceInfo vm_add_vdpa_put(vdpa_config)
+> models::PciDeviceInfo vm_add_vdpa_put(vdpa_config)
 Add a new vDPA device to the VM
 
 ### Parameters
@@ -445,7 +447,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -461,7 +463,7 @@ No authorization required
 
 ## vm_add_vsock_put
 
-> crate::models::PciDeviceInfo vm_add_vsock_put(vsock_config)
+> models::PciDeviceInfo vm_add_vsock_put(vsock_config)
 Add a new vsock device to the VM
 
 ### Parameters
@@ -473,7 +475,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**crate::models::PciDeviceInfo**](PciDeviceInfo.md)
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
 
 ### Authorization
 
@@ -517,7 +519,7 @@ No authorization required
 
 ## vm_counters_get
 
-> ::std::collections::HashMap<String, ::std::collections::HashMap<String, i64>> vm_counters_get()
+> std::collections::HashMap<String, std::collections::HashMap<String, i64>> vm_counters_get()
 Get counters from the VM
 
 ### Parameters
@@ -526,7 +528,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**::std::collections::HashMap<String, ::std::collections::HashMap<String, i64>>**](map.md)
+[**std::collections::HashMap<String, std::collections::HashMap<String, i64>>**](std::collections::HashMap.md)
 
 ### Authorization
 
@@ -542,7 +544,7 @@ No authorization required
 
 ## vm_info_get
 
-> crate::models::VmInfo vm_info_get()
+> models::VmInfo vm_info_get()
 Returns general information about the cloud-hypervisor Virtual Machine (VM) instance.
 
 ### Parameters
@@ -551,7 +553,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**crate::models::VmInfo**](VmInfo.md)
+[**models::VmInfo**](VmInfo.md)
 
 ### Authorization
 
@@ -604,6 +606,34 @@ Remove a device from the VM
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **vm_remove_device** | [**VmRemoveDevice**](VmRemoveDevice.md) | The identifier of the device | [required] |
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## vm_resize_disk_put
+
+> vm_resize_disk_put(vm_resize_disk)
+Resize a disk
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**vm_resize_disk** | [**VmResizeDisk**](VmResizeDisk.md) | Resizes a disk attached to the VM | [required] |
 
 ### Return type
 
@@ -761,9 +791,34 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## vmm_nmi_put
+
+> vmm_nmi_put()
+Inject an NMI.
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## vmm_ping_get
 
-> crate::models::VmmPingResponse vmm_ping_get()
+> models::VmmPingResponse vmm_ping_get()
 Ping the VMM to check for API server availability
 
 ### Parameters
@@ -772,7 +827,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**crate::models::VmmPingResponse**](VmmPingResponse.md)
+[**models::VmmPingResponse**](VmmPingResponse.md)
 
 ### Authorization
 

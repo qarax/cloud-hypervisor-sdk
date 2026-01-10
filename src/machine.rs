@@ -60,9 +60,10 @@ impl<'m> Machine<'m> {
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             eprintln!("Failed to start Cloud Hypervisor in tmux: {}", stderr);
-            return Err(std::io::Error::other(
-                format!("Failed to start Cloud Hypervisor in tmux: {}", stderr),
-            )
+            return Err(std::io::Error::other(format!(
+                "Failed to start Cloud Hypervisor in tmux: {}",
+                stderr
+            ))
             .into());
         }
 
@@ -137,7 +138,27 @@ impl<'m> Machine<'m> {
             "connecting HTTP clinet to Cloud Hypervisor at {:?}...",
             socket_path
         );
-        let stream = UnixStream::connect(socket_path).await?;
+
+        // Wait for socket to be ready with retry logic
+        let max_retries = 50; // 5 seconds total (50 * 100ms)
+        let mut retries = 0;
+        let stream = loop {
+            match UnixStream::connect(socket_path).await {
+                Ok(stream) => break stream,
+                Err(e) if retries < max_retries => {
+                    retries += 1;
+                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                    if retries % 10 == 0 {
+                        info!(
+                            "Still waiting for socket to be ready... (attempt {}/{})",
+                            retries, max_retries
+                        );
+                    }
+                }
+                Err(e) => return Err(e.into()),
+            }
+        };
+
         let io = TokioIo::new(stream);
         let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await?;
 

@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    let memory_config = MemoryConfig::new(1 * 1024 * 1024 * 1024);
+    let memory_config = MemoryConfig::new(1024 * 1024 * 1024);
 
     let vm_config = VmConfig {
         cpus: Some(Box::new(cpus_config)),
@@ -23,7 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             kernel: Some("./hypervisor-fw".to_string()),
             ..Default::default()
         }),
-        disks: Some(vec![DiskConfig::new("./fedora.raw".to_string())]),
+        disks: Some(vec![DiskConfig {
+            path: Some("./fedora.raw".to_string()),
+            ..Default::default()
+        }]),
         ..Default::default()
     };
 

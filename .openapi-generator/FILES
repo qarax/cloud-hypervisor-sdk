@@ -1,7 +1,5 @@
 .gitignore
-.openapi-generator-ignore
 .travis.yml
-Cargo.toml
 README.md
 docs/BalloonConfig.md
 docs/ConsoleConfig.md
@@ -15,6 +13,7 @@ docs/DeviceConfig.md
 docs/DeviceNode.md
 docs/DiskConfig.md
 docs/FsConfig.md
+docs/LandlockConfig.md
 docs/MemoryConfig.md
 docs/MemoryZoneConfig.md
 docs/NetConfig.md
@@ -22,6 +21,7 @@ docs/NumaConfig.md
 docs/NumaDistance.md
 docs/PayloadConfig.md
 docs/PciDeviceInfo.md
+docs/PciSegmentConfig.md
 docs/PlatformConfig.md
 docs/PmemConfig.md
 docs/RateLimitGroupConfig.md
@@ -30,7 +30,6 @@ docs/ReceiveMigrationData.md
 docs/RestoreConfig.md
 docs/RngConfig.md
 docs/SendMigrationData.md
-docs/SgxEpcConfig.md
 docs/TokenBucket.md
 docs/TpmConfig.md
 docs/VdpaConfig.md
@@ -41,15 +40,12 @@ docs/VmCoredumpData.md
 docs/VmInfo.md
 docs/VmRemoveDevice.md
 docs/VmResize.md
+docs/VmResizeDisk.md
 docs/VmResizeZone.md
 docs/VmSnapshotConfig.md
 docs/VmmPingResponse.md
 docs/VsockConfig.md
 git_push.sh
-src/apis/configuration.rs
-src/apis/default_api.rs
-src/apis/mod.rs
-src/lib.rs
 src/models/balloon_config.rs
 src/models/console_config.rs
 src/models/cpu_affinity.rs
@@ -61,6 +57,7 @@ src/models/device_config.rs
 src/models/device_node.rs
 src/models/disk_config.rs
 src/models/fs_config.rs
+src/models/landlock_config.rs
 src/models/memory_config.rs
 src/models/memory_zone_config.rs
 src/models/mod.rs
@@ -69,6 +66,7 @@ src/models/numa_config.rs
 src/models/numa_distance.rs
 src/models/payload_config.rs
 src/models/pci_device_info.rs
+src/models/pci_segment_config.rs
 src/models/platform_config.rs
 src/models/pmem_config.rs
 src/models/rate_limit_group_config.rs
@@ -77,7 +75,6 @@ src/models/receive_migration_data.rs
 src/models/restore_config.rs
 src/models/rng_config.rs
 src/models/send_migration_data.rs
-src/models/sgx_epc_config.rs
 src/models/token_bucket.rs
 src/models/tpm_config.rs
 src/models/vdpa_config.rs
@@ -88,6 +85,7 @@ src/models/vm_coredump_data.rs
 src/models/vm_info.rs
 src/models/vm_remove_device.rs
 src/models/vm_resize.rs
+src/models/vm_resize_disk.rs
 src/models/vm_resize_zone.rs
 src/models/vm_snapshot_config.rs
 src/models/vmm_ping_response.rs

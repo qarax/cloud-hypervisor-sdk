@@ -4,17 +4,24 @@
 # Use this file to prevent files from being overwritten by the generator.
 # The patterns follow closely to .gitignore or .dockerignore.
 
-# As an example, the C# client generator defines ApiClient.cs.
-# You can make changes and tell OpenAPI Generator to ignore just this file by uncommenting the following line:
-#ApiClient.cs
+# Protect custom code files
+src/machine.rs
+src/client.rs
+src/error.rs
+src/lib.rs
+examples/**/*.rs
+examples/**/*.sh
+examples/**/*.md
+CLAUDE.md
+REGENERATE.md
+Makefile
+regenerate.sh
 
-# You can match any string of characters against a directory, file or extension with a single asterisk (*):
-#foo/*/qux
-# The above matches foo/bar/qux and foo/baz/qux, but not foo/bar/baz/qux
+# Protect modified package files
+Cargo.toml
 
-# You can recursively match patterns against a directory, file or extension with a double asterisk (**):
-#foo/**/qux
-# This matches foo/bar/qux, foo/baz/qux, and foo/bar/baz/qux
+# Don't need the generated API client (we use our custom machine.rs)
+src/apis/**
 
 # You can also negate patterns with an exclamation (!).
 # For example, you can ignore all files in a docs folder with the file extension .md:

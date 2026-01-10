@@ -1,3 +1,10 @@
 /target/
 **/*.rs.bk
 Cargo.lock
+.openapi-generator/*.jar
+examples/images/
+*.qcow2
+*.raw
+cloud-hypervisor
+cloud-hypervisor-static
+ch-remote

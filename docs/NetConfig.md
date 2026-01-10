@@ -19,6 +19,9 @@ Name | Type | Description | Notes
 **id** | Option<**String**> |  | [optional]
 **pci_segment** | Option<**i32**> |  | [optional]
 **rate_limiter_config** | Option<[**models::RateLimiterConfig**](RateLimiterConfig.md)> |  | [optional]
+**offload_tso** | Option<**bool**> |  | [optional][default to true]
+**offload_ufo** | Option<**bool**> |  | [optional][default to true]
+**offload_csum** | Option<**bool**> |  | [optional][default to true]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

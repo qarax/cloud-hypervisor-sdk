@@ -9,6 +9,7 @@
  */
 
 use crate::models;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct NetConfig {
@@ -47,6 +48,12 @@ pub struct NetConfig {
         skip_serializing_if = "Option::is_none"
     )]
     pub rate_limiter_config: Option<Box<models::RateLimiterConfig>>,
+    #[serde(rename = "offload_tso", skip_serializing_if = "Option::is_none")]
+    pub offload_tso: Option<bool>,
+    #[serde(rename = "offload_ufo", skip_serializing_if = "Option::is_none")]
+    pub offload_ufo: Option<bool>,
+    #[serde(rename = "offload_csum", skip_serializing_if = "Option::is_none")]
+    pub offload_csum: Option<bool>,
 }
 
 impl NetConfig {
@@ -67,6 +74,9 @@ impl NetConfig {
             id: None,
             pci_segment: None,
             rate_limiter_config: None,
+            offload_tso: None,
+            offload_ufo: None,
+            offload_csum: None,
         }
     }
 }
