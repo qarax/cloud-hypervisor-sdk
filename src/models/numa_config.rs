@@ -23,6 +23,8 @@ pub struct NumaConfig {
     pub memory_zones: Option<Vec<String>>,
     #[serde(rename = "pci_segments", skip_serializing_if = "Option::is_none")]
     pub pci_segments: Option<Vec<i32>>,
+    #[serde(rename = "device_id", skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<String>,
 }
 
 impl NumaConfig {
@@ -33,6 +35,7 @@ impl NumaConfig {
             distances: None,
             memory_zones: None,
             pci_segments: None,
+            device_id: None,
         }
     }
 }

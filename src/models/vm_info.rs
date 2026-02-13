@@ -35,12 +35,10 @@ impl VmInfo {
         }
     }
 }
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, Default,
-)]
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum State {
     #[serde(rename = "Created")]
-    #[default]
     Created,
     #[serde(rename = "Running")]
     Running,
@@ -48,4 +46,10 @@ pub enum State {
     Shutdown,
     #[serde(rename = "Paused")]
     Paused,
+}
+
+impl Default for State {
+    fn default() -> State {
+        Self::Created
+    }
 }

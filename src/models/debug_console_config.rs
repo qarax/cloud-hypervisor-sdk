@@ -30,12 +30,10 @@ impl DebugConsoleConfig {
         }
     }
 }
-#[derive(
-    Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, Default,
-)]
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum Mode {
     #[serde(rename = "Off")]
-    #[default]
     Off,
     #[serde(rename = "Pty")]
     Pty,
@@ -45,4 +43,10 @@ pub enum Mode {
     File,
     #[serde(rename = "Null")]
     Null,
+}
+
+impl Default for Mode {
+    fn default() -> Mode {
+        Self::Off
+    }
 }
