@@ -1,0 +1,139 @@
+name: Sync with Cloud Hypervisor
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 6am UTC
+  workflow_dispatch:      # allow manual trigger
+
+jobs:
+  sync:
+    name: Check and sync with latest Cloud Hypervisor release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch latest Cloud Hypervisor release tag
+        id: ch_latest
+        run: |
+          LATEST=$(curl -sSL "https://api.github.com/repos/cloud-hypervisor/cloud-hypervisor/releases/latest" \
+            | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+          if [ -z "$LATEST" ]; then
+            echo "ERROR: Could not fetch latest Cloud Hypervisor release tag"
+            exit 1
+          fi
+          echo "tag=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Latest Cloud Hypervisor release: $LATEST"
+
+      - name: Read current tracked version
+        id: current
+        run: |
+          if [ -f ".cloud-hypervisor-version" ]; then
+            CURRENT=$(cat .cloud-hypervisor-version)
+          else
+            CURRENT="none"
+          fi
+          echo "tag=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "Current tracked version: $CURRENT"
+
+      - name: Check if update is needed
+        id: needs_update
+        run: |
+          if [ "${{ steps.ch_latest.outputs.tag }}" = "${{ steps.current.outputs.tag }}" ]; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "Already up to date with ${{ steps.ch_latest.outputs.tag }}, nothing to do."
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "Update needed: ${{ steps.current.outputs.tag }} -> ${{ steps.ch_latest.outputs.tag }}"
+          fi
+
+      - name: Install Java
+        if: steps.needs_update.outputs.needed == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Rust toolchain
+        if: steps.needs_update.outputs.needed == 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Rust dependencies
+        if: steps.needs_update.outputs.needed == 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run regenerate.sh
+        if: steps.needs_update.outputs.needed == 'true'
+        run: |
+          chmod +x regenerate.sh
+          ./regenerate.sh
+
+      - name: Derive SDK version from Cloud Hypervisor tag
+        if: steps.needs_update.outputs.needed == 'true'
+        id: sdk_version
+        run: |
+          # Convert vX.Y -> X.Y.0  (e.g. v51.0 -> 51.0.0)
+          CH_TAG="${{ steps.ch_latest.outputs.tag }}"
+          SEMVER=$(echo "$CH_TAG" | sed 's/^v//' | sed 's/$/\.0/')
+          echo "version=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "Derived SDK version: $SEMVER"
+
+      - name: Bump version in Cargo.toml
+        if: steps.needs_update.outputs.needed == 'true'
+        run: |
+          sed -i 's/^version = ".*"/version = "${{ steps.sdk_version.outputs.version }}"/' Cargo.toml
+
+      - name: Commit and push changes
+        if: steps.needs_update.outputs.needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: sync with Cloud Hypervisor ${{ steps.ch_latest.outputs.tag }}"
+          git push origin main
+
+      - name: Create and push tag
+        if: steps.needs_update.outputs.needed == 'true'
+        run: |
+          TAG="v${{ steps.sdk_version.outputs.version }}"
+          git tag -a "$TAG" -m "Release $TAG (Cloud Hypervisor ${{ steps.ch_latest.outputs.tag }})"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        if: steps.needs_update.outputs.needed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.sdk_version.outputs.version }}
+          name: v${{ steps.sdk_version.outputs.version }}
+          generate_release_notes: true
+          body: |
+            ## cloud-hypervisor-sdk v${{ steps.sdk_version.outputs.version }}
+
+            Automatically synced with **Cloud Hypervisor ${{ steps.ch_latest.outputs.tag }}**.
+
+            ### Usage
+
+            **Pin to this release:**
+            ```toml
+            cloud-hypervisor-sdk = { git = "https://github.com/${{ github.repository }}", tag = "v${{ steps.sdk_version.outputs.version }}" }
+            ```
+
+            **Always use latest main:**
+            ```toml
+            cloud-hypervisor-sdk = { git = "https://github.com/${{ github.repository }}", branch = "main" }
+            ```
