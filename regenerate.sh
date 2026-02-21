@@ -62,11 +62,11 @@ get_generator_cmd() {
             echo "java -jar .openapi-generator/$GENERATOR_JAR"
             return 0
         fi
-        echo "==> Cached generator version ($CACHED_VERSION) differs from latest ($GENERATOR_VERSION), re-downloading..."
+        echo "==> Cached generator version ($CACHED_VERSION) differs from latest ($GENERATOR_VERSION), re-downloading..." >&2
     fi
 
     # Download the JAR file
-    echo "==> Downloading OpenAPI Generator v${GENERATOR_VERSION}..."
+    echo "==> Downloading OpenAPI Generator v${GENERATOR_VERSION}..." >&2
     mkdir -p .openapi-generator
 
     if command_exists curl; then
@@ -74,7 +74,7 @@ get_generator_cmd() {
     elif command_exists wget; then
         wget -q "$GENERATOR_URL" -O ".openapi-generator/$GENERATOR_JAR"
     else
-        echo "ERROR: Neither curl nor wget found. Please install one of them."
+        echo "ERROR: Neither curl nor wget found. Please install one of them." >&2
         exit 1
     fi
 

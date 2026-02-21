@@ -1,6 +1,9 @@
 name: Sync with Cloud Hypervisor
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: "0 6 * * *" # daily at 6am UTC
   workflow_dispatch: # allow manual trigger
@@ -44,12 +47,29 @@ jobs:
       - name: Check if update is needed
         id: needs_update
         run: |
-          if [ "${{ steps.ch_latest.outputs.tag }}" = "${{ steps.current.outputs.tag }}" ]; then
+          CH_TAG="${{ steps.ch_latest.outputs.tag }}"
+          CURRENT_TAG="${{ steps.current.outputs.tag }}"
+
+          # Derive what the SDK tag would be for the current CH release (vX.Y -> vX.Y.0)
+          SDK_TAG="v$(echo "$CH_TAG" | sed 's/^v//' | sed 's/$/.0/')"
+
+          # Check if the SDK tag already exists in the repo
+          if git ls-remote --tags origin "refs/tags/${SDK_TAG}" | grep -q .; then
+            TAG_EXISTS=true
+          else
+            TAG_EXISTS=false
+          fi
+
+          if [ "$CH_TAG" = "$CURRENT_TAG" ] && [ "$TAG_EXISTS" = "true" ]; then
             echo "needed=false" >> "$GITHUB_OUTPUT"
-            echo "Already up to date with ${{ steps.ch_latest.outputs.tag }}, nothing to do."
+            echo "Already up to date with ${CH_TAG} and tag ${SDK_TAG} exists, nothing to do."
           else
             echo "needed=true" >> "$GITHUB_OUTPUT"
-            echo "Update needed: ${{ steps.current.outputs.tag }} -> ${{ steps.ch_latest.outputs.tag }}"
+            if [ "$CH_TAG" != "$CURRENT_TAG" ]; then
+              echo "Update needed: CH version changed ${CURRENT_TAG} -> ${CH_TAG}"
+            else
+              echo "Update needed: SDK tag ${SDK_TAG} does not exist yet"
+            fi
           fi
 
       - name: Install Java
