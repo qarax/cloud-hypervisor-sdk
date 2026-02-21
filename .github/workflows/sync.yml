@@ -2,8 +2,8 @@ name: Sync with Cloud Hypervisor
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # daily at 6am UTC
-  workflow_dispatch:      # allow manual trigger
+    - cron: "0 6 * * *" # daily at 6am UTC
+  workflow_dispatch: # allow manual trigger
 
 jobs:
   sync:
@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Install Rust toolchain
         if: steps.needs_update.outputs.needed == 'true'
@@ -97,6 +97,21 @@ jobs:
         if: steps.needs_update.outputs.needed == 'true'
         run: |
           sed -i 's/^version = ".*"/version = "${{ steps.sdk_version.outputs.version }}"/' Cargo.toml
+
+      - name: Update README
+        if: steps.needs_update.outputs.needed == 'true'
+        run: |
+          CH_TAG="${{ steps.ch_latest.outputs.tag }}"
+          SDK_TAG="v${{ steps.sdk_version.outputs.version }}"
+          REPO="${{ github.repository }}"
+
+          # Update the shields.io badge
+          sed -i "s|cloud--hypervisor-v[^-]*-blue|cloud--hypervisor-${SDK_TAG}-blue|g" README.md
+          sed -i "s|/releases/tag/v[0-9.]*)|/releases/tag/${CH_TAG})|g" README.md
+
+          # Replace everything between the install markers
+          NEW_INSTALL="**Pin to the latest release (Cloud Hypervisor ${CH_TAG}):**\n\`\`\`toml\n[dependencies]\ncloud-hypervisor-sdk = { git = \"https://github.com/${REPO}\", tag = \"${SDK_TAG}\" }\n\`\`\`\n\n**Always use latest main:**\n\`\`\`toml\n[dependencies]\ncloud-hypervisor-sdk = { git = \"https://github.com/${REPO}\", branch = \"main\" }\n\`\`\`"
+          perl -i -0pe "s|(?<=<!-- BEGIN INSTALL -->\n).*(?=\n<!-- END INSTALL -->)|${NEW_INSTALL}|s" README.md
 
       - name: Commit and push changes
         if: steps.needs_update.outputs.needed == 'true'

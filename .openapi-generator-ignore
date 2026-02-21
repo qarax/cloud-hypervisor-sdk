@@ -5,6 +5,7 @@
 # The patterns follow closely to .gitignore or .dockerignore.
 
 # Protect custom code files
+README.md
 src/machine.rs
 src/client.rs
 src/error.rs
