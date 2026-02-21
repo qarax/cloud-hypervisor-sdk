@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **topology** | Option<[**models::CpuTopology**](CpuTopology.md)> |  | [optional]
 **kvm_hyperv** | Option<**bool**> |  | [optional][default to false]
 **max_phys_bits** | Option<**i32**> |  | [optional]
+**nested** | Option<**bool**> |  | [optional][default to true]
 **affinity** | Option<[**Vec<models::CpuAffinity>**](CpuAffinity.md)> |  | [optional]
 **features** | Option<[**models::CpuFeatures**](CpuFeatures.md)> |  | [optional]
 

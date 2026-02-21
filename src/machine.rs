@@ -145,7 +145,7 @@ impl<'m> Machine<'m> {
         let stream = loop {
             match UnixStream::connect(socket_path).await {
                 Ok(stream) => break stream,
-                Err(e) if retries < max_retries => {
+                Err(_e) if retries < max_retries => {
                     retries += 1;
                     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                     if retries % 10 == 0 {

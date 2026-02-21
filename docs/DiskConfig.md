@@ -18,6 +18,9 @@ Name | Type | Description | Notes
 **serial** | Option<**String**> |  | [optional]
 **rate_limit_group** | Option<**String**> |  | [optional]
 **queue_affinity** | Option<[**Vec<models::VirtQueueAffinity>**](VirtQueueAffinity.md)> |  | [optional]
+**backing_files** | Option<**bool**> |  | [optional][default to false]
+**sparse** | Option<**bool**> |  | [optional][default to true]
+**image_type** | Option<[**models::EnumLeftSquareBracketDoubleQuoteFixedVhdDoubleQuoteCommaDoubleQuoteQcow2DoubleQuoteCommaDoubleQuoteRawDoubleQuoteCommaDoubleQuoteVhdxDoubleQuoteRightSquareBracket**](enum ["FixedVhd", "Qcow2", "Raw", "Vhdx"].md)> |  | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

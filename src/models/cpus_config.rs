@@ -23,6 +23,8 @@ pub struct CpusConfig {
     pub kvm_hyperv: Option<bool>,
     #[serde(rename = "max_phys_bits", skip_serializing_if = "Option::is_none")]
     pub max_phys_bits: Option<i32>,
+    #[serde(rename = "nested", skip_serializing_if = "Option::is_none")]
+    pub nested: Option<bool>,
     #[serde(rename = "affinity", skip_serializing_if = "Option::is_none")]
     pub affinity: Option<Vec<models::CpuAffinity>>,
     #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
@@ -37,6 +39,7 @@ impl CpusConfig {
             topology: None,
             kvm_hyperv: None,
             max_phys_bits: None,
+            nested: None,
             affinity: None,
             features: None,
         }

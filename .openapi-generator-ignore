@@ -9,6 +9,7 @@ src/machine.rs
 src/client.rs
 src/error.rs
 src/lib.rs
+src/models/disk_image_type.rs
 examples/**/*.rs
 examples/**/*.sh
 examples/**/*.md

@@ -44,6 +44,12 @@ pub struct DiskConfig {
     pub rate_limit_group: Option<String>,
     #[serde(rename = "queue_affinity", skip_serializing_if = "Option::is_none")]
     pub queue_affinity: Option<Vec<models::VirtQueueAffinity>>,
+    #[serde(rename = "backing_files", skip_serializing_if = "Option::is_none")]
+    pub backing_files: Option<bool>,
+    #[serde(rename = "sparse", skip_serializing_if = "Option::is_none")]
+    pub sparse: Option<bool>,
+    #[serde(rename = "image_type", skip_serializing_if = "Option::is_none")]
+    pub image_type: Option<models::DiskImageType>,
 }
 
 impl DiskConfig {
@@ -63,6 +69,9 @@ impl DiskConfig {
             serial: None,
             rate_limit_group: None,
             queue_affinity: None,
+            backing_files: None,
+            sparse: None,
+            image_type: None,
         }
     }
 }

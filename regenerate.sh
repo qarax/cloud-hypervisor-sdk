@@ -4,9 +4,39 @@ set -e
 # Regenerate cloud-hypervisor SDK from OpenAPI spec
 # This script downloads the OpenAPI spec and generator, then regenerates the SDK
 
-SPEC_URL="https://raw.githubusercontent.com/cloud-hypervisor/cloud-hypervisor/main/vmm/src/api/openapi/cloud-hypervisor.yaml"
 SPEC_FILE="cloud-hypervisor.yaml"
-GENERATOR_VERSION="7.10.0"
+
+echo "==> Fetching latest Cloud Hypervisor release tag..."
+if command -v curl >/dev/null 2>&1; then
+    LATEST_TAG=$(curl -sSL "https://api.github.com/repos/cloud-hypervisor/cloud-hypervisor/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+elif command -v wget >/dev/null 2>&1; then
+    LATEST_TAG=$(wget -qO- "https://api.github.com/repos/cloud-hypervisor/cloud-hypervisor/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+else
+    echo "ERROR: Neither curl nor wget found."
+    exit 1
+fi
+
+if [ -z "$LATEST_TAG" ]; then
+    echo "ERROR: Could not determine latest release tag from GitHub API."
+    exit 1
+fi
+
+echo "    Latest release: $LATEST_TAG"
+SPEC_URL="https://raw.githubusercontent.com/cloud-hypervisor/cloud-hypervisor/${LATEST_TAG}/vmm/src/api/openapi/cloud-hypervisor.yaml"
+
+echo "==> Fetching latest OpenAPI Generator version..."
+if command -v curl >/dev/null 2>&1; then
+    GENERATOR_VERSION=$(curl -sSL "https://api.github.com/repos/OpenAPITools/openapi-generator/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"v\([^"]*\)".*/\1/')
+elif command -v wget >/dev/null 2>&1; then
+    GENERATOR_VERSION=$(wget -qO- "https://api.github.com/repos/OpenAPITools/openapi-generator/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"v\([^"]*\)".*/\1/')
+fi
+
+if [ -z "$GENERATOR_VERSION" ]; then
+    echo "    WARNING: Could not fetch latest generator version, falling back to 7.10.0"
+    GENERATOR_VERSION="7.10.0"
+fi
+
+echo "    Latest OpenAPI Generator: v${GENERATOR_VERSION}"
 GENERATOR_JAR="openapi-generator-cli.jar"
 GENERATOR_URL="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${GENERATOR_VERSION}/openapi-generator-cli-${GENERATOR_VERSION}.jar"
 TEMP_DIR=$(mktemp -d)
@@ -16,6 +46,7 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+
 # Function to get openapi-generator command
 get_generator_cmd() {
     # Check if openapi-generator-cli is available via npm
@@ -24,14 +55,18 @@ get_generator_cmd() {
         return 0
     fi
 
-    # Check if we have the JAR file locally
-    if [ -f ".openapi-generator/$GENERATOR_JAR" ]; then
-        echo "java -jar .openapi-generator/$GENERATOR_JAR"
-        return 0
+    # Check if we have the JAR file locally and it matches the desired version
+    if [ -f ".openapi-generator/$GENERATOR_JAR" ] && [ -f ".openapi-generator/generator-version" ]; then
+        CACHED_VERSION=$(cat ".openapi-generator/generator-version")
+        if [ "$CACHED_VERSION" = "$GENERATOR_VERSION" ]; then
+            echo "java -jar .openapi-generator/$GENERATOR_JAR"
+            return 0
+        fi
+        echo "==> Cached generator version ($CACHED_VERSION) differs from latest ($GENERATOR_VERSION), re-downloading..."
     fi
 
     # Download the JAR file
-    echo "==> OpenAPI Generator not found. Downloading version $GENERATOR_VERSION..."
+    echo "==> Downloading OpenAPI Generator v${GENERATOR_VERSION}..."
     mkdir -p .openapi-generator
 
     if command_exists curl; then
@@ -43,6 +78,7 @@ get_generator_cmd() {
         exit 1
     fi
 
+    echo "$GENERATOR_VERSION" > ".openapi-generator/generator-version"
     echo "java -jar .openapi-generator/$GENERATOR_JAR"
 }
 
@@ -60,7 +96,7 @@ if ! command_exists java; then
     exit 1
 fi
 
-echo "==> Downloading OpenAPI spec from GitHub..."
+echo "==> Downloading OpenAPI spec from GitHub (tag: ${LATEST_TAG})..."
 if command_exists curl; then
     curl -sSL "$SPEC_URL" -o "$TEMP_DIR/$SPEC_FILE"
 elif command_exists wget; then
@@ -80,6 +116,19 @@ $GENERATOR_CMD generate \
     -o . \
     --additional-properties=packageName=cloud-hypervisor-sdk,packageVersion=0.1.0
 
+echo "$LATEST_TAG" > .cloud-hypervisor-version
+
+echo "==> Applying post-generation patches..."
+
+# Fix mangled inline enum type name for image_type in disk_config.rs
+MANGLED="EnumLeftSquareBracketDoubleQuoteFixedVhdDoubleQuoteCommaDoubleQuoteQcow2DoubleQuoteCommaDoubleQuoteRawDoubleQuoteCommaDoubleQuoteVhdxDoubleQuoteRightSquareBracket"
+sed -i "s/models::${MANGLED}/models::DiskImageType/g" src/models/disk_config.rs
+
+# Register disk_image_type module in mod.rs if not already present
+if ! grep -q "disk_image_type" src/models/mod.rs; then
+    sed -i '/pub mod disk_config;/a pub mod disk_image_type;\npub use self::disk_image_type::DiskImageType;' src/models/mod.rs
+fi
+
 echo "==> Cleaning up..."
 rm -rf "$TEMP_DIR"
 
@@ -91,6 +140,7 @@ cargo build
 
 echo ""
 echo "==> Regeneration complete!"
+echo "    Cloud Hypervisor version: $LATEST_TAG"
 echo "    Custom files (machine.rs, client.rs, error.rs, examples/) were preserved."
 echo "    Generated files (models/, apis/) have been updated."
 echo ""
