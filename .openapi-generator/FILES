@@ -1,6 +1,5 @@
 .gitignore
 .travis.yml
-README.md
 docs/BalloonConfig.md
 docs/ConsoleConfig.md
 docs/CpuAffinity.md
