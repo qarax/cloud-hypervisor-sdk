@@ -49,7 +49,7 @@ pub struct DiskConfig {
     #[serde(rename = "sparse", skip_serializing_if = "Option::is_none")]
     pub sparse: Option<bool>,
     #[serde(rename = "image_type", skip_serializing_if = "Option::is_none")]
-    pub image_type: Option<models::DiskImageType>,
+    pub image_type: Option<ImageType>,
 }
 
 impl DiskConfig {
@@ -73,5 +73,25 @@ impl DiskConfig {
             sparse: None,
             image_type: None,
         }
+    }
+}
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum ImageType {
+    #[serde(rename = "FixedVhd")]
+    FixedVhd,
+    #[serde(rename = "Qcow2")]
+    Qcow2,
+    #[serde(rename = "Raw")]
+    Raw,
+    #[serde(rename = "Vhdx")]
+    Vhdx,
+    #[serde(rename = "Unknown")]
+    Unknown,
+}
+
+impl Default for ImageType {
+    fn default() -> ImageType {
+        Self::FixedVhd
     }
 }

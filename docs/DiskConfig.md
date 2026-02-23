@@ -20,7 +20,7 @@ Name | Type | Description | Notes
 **queue_affinity** | Option<[**Vec<models::VirtQueueAffinity>**](VirtQueueAffinity.md)> |  | [optional]
 **backing_files** | Option<**bool**> |  | [optional][default to false]
 **sparse** | Option<**bool**> |  | [optional][default to true]
-**image_type** | Option<[**models::EnumLeftSquareBracketDoubleQuoteFixedVhdDoubleQuoteCommaDoubleQuoteQcow2DoubleQuoteCommaDoubleQuoteRawDoubleQuoteCommaDoubleQuoteVhdxDoubleQuoteRightSquareBracket**](Enum_FixedVhdQcow2RawVhdx.md)> |  | [optional]
+**image_type** | Option<**ImageType**> |  (enum: FixedVhd, Qcow2, Raw, Vhdx, Unknown) | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 
