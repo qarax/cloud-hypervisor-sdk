@@ -21,7 +21,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -32,10 +32,13 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Build
-        run: cargo build
+        run: cargo build --all-targets
 
       - name: Check formatting
         run: cargo fmt --check
 
       - name: Clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test

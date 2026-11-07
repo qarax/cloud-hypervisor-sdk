@@ -15,10 +15,26 @@ use serde::{Deserialize, Serialize};
 pub struct ReceiveMigrationData {
     #[serde(rename = "receiver_url")]
     pub receiver_url: String,
+    /// Directory containing the TLS server certificate (server-cert.pem), the TLS server key (server-key.pem), and the client TLS root CA certificate (ca-cert.pem). TLS is only supported with tcp:<host>:<port> receiver URLs. Recommended for all TCP migrations. Omitting it is only intended for development and testing, as TCP migration is then unencrypted and unauthenticated.
+    #[serde(rename = "tls_dir", skip_serializing_if = "Option::is_none")]
+    pub tls_dir: Option<String>,
+    #[serde(rename = "zone_updates", skip_serializing_if = "Option::is_none")]
+    pub zone_updates: Option<Vec<models::VmMemoryZoneUpdateData>>,
+    /// Enable the background thread for faulting all remaining pages.
+    #[serde(
+        rename = "background_fetch_pages",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub background_fetch_pages: Option<bool>,
 }
 
 impl ReceiveMigrationData {
     pub fn new(receiver_url: String) -> ReceiveMigrationData {
-        ReceiveMigrationData { receiver_url }
+        ReceiveMigrationData {
+            receiver_url,
+            tls_dir: None,
+            zone_updates: None,
+            background_fetch_pages: None,
+        }
     }
 }

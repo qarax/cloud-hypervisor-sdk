@@ -55,11 +55,13 @@ make clippy
 When Cloud Hypervisor's API is updated, regenerate the SDK:
 
 ```bash
-# Regenerate from upstream OpenAPI spec
+# Regenerate from the latest upstream OpenAPI spec
 ./regenerate.sh
-# or
-make regenerate
+# or a specific release
+CH_TAG=v54.0 ./regenerate.sh
 ```
+
+The script is what the sync workflow (`.github/workflows/sync.yml`) runs, so local and CI output match. The openapi-generator version is pinned in `openapitools.json`.
 
 **What gets regenerated:**
 - `src/models/*` - All model structs (VmConfig, DiskConfig, etc.)
@@ -75,9 +77,9 @@ make regenerate
 - `Cargo.toml` - Custom dependencies and metadata
 
 **Requirements:**
-- Java 8+ (the script auto-downloads the OpenAPI generator)
+- Java 11+ and curl (the script downloads the pinned OpenAPI generator)
 
-After regeneration, verify with `cargo build` and test examples.
+After regeneration, verify with `cargo clippy --all-targets -- -D warnings && cargo test`, and update `src/machine.rs` and `examples/` for any API changes.
 
 ## Architecture
 

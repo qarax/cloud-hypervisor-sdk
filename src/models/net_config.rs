@@ -28,7 +28,7 @@ pub struct NetConfig {
     #[serde(rename = "mtu", skip_serializing_if = "Option::is_none")]
     pub mtu: Option<i32>,
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
-    pub iommu: Option<bool>,
+    pub iommu: Option<models::IommuType>,
     #[serde(rename = "num_queues", skip_serializing_if = "Option::is_none")]
     pub num_queues: Option<i32>,
     #[serde(rename = "queue_size", skip_serializing_if = "Option::is_none")]
@@ -42,7 +42,9 @@ pub struct NetConfig {
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
-    pub pci_segment: Option<i32>,
+    pub pci_segment: Option<i16>,
+    #[serde(rename = "pci_device_id", skip_serializing_if = "Option::is_none")]
+    pub pci_device_id: Option<u8>,
     #[serde(
         rename = "rate_limiter_config",
         skip_serializing_if = "Option::is_none"
@@ -73,6 +75,7 @@ impl NetConfig {
             vhost_mode: None,
             id: None,
             pci_segment: None,
+            pci_device_id: None,
             rate_limiter_config: None,
             offload_tso: None,
             offload_ufo: None,

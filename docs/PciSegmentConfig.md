@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**pci_segment** | **i32** |  | 
+**pci_segment** | **i16** |  | 
 **mmio32_aperture_weight** | Option<**i32**> |  | [optional]
 **mmio64_aperture_weight** | Option<**i32**> |  | [optional]
 

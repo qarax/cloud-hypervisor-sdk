@@ -8,12 +8,24 @@ on:
     - cron: "0 6 * * *" # daily at 6am UTC
   workflow_dispatch: # allow manual trigger
 
+permissions:
+  contents: write # push the regenerated SDK, tags and releases
+  actions: write # keep this workflow enabled (see below)
+  issues: write # report failed syncs
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  GITHUB_TOKEN: ${{ github.token }}
+
 jobs:
   sync:
     name: Check and sync with latest Cloud Hypervisor release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout
@@ -21,154 +33,120 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch latest Cloud Hypervisor release tag
-        id: ch_latest
+      # GitHub disables scheduled workflows after 60 days without a commit, and
+      # this job only commits when Cloud Hypervisor releases. Re-enabling the
+      # workflow resets that timer.
+      - name: Keep this workflow enabled
+        run: gh api -X PUT "repos/${GH_REPO}/actions/workflows/sync.yml/enable"
+
+      - name: Check for a new Cloud Hypervisor release
+        id: release
         run: |
-          LATEST=$(curl -sSL "https://api.github.com/repos/cloud-hypervisor/cloud-hypervisor/releases/latest" \
-            | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-          if [ -z "$LATEST" ]; then
+          TAG=$(gh release view --repo cloud-hypervisor/cloud-hypervisor --json tagName --jq .tagName)
+          if [ -z "$TAG" ]; then
             echo "ERROR: Could not fetch latest Cloud Hypervisor release tag"
             exit 1
           fi
-          echo "tag=$LATEST" >> "$GITHUB_OUTPUT"
-          echo "Latest Cloud Hypervisor release: $LATEST"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Read current tracked version
-        id: current
-        run: |
-          if [ -f ".cloud-hypervisor-version" ]; then
-            CURRENT=$(cat .cloud-hypervisor-version)
-          else
-            CURRENT="none"
-          fi
-          echo "tag=$CURRENT" >> "$GITHUB_OUTPUT"
-          echo "Current tracked version: $CURRENT"
+          CURRENT=$(cat .cloud-hypervisor-version 2>/dev/null || echo none)
+          SDK_TAG="v$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          echo "Latest Cloud Hypervisor release: $TAG, SDK tracks: $CURRENT ($SDK_TAG)"
 
-      - name: Check if update is needed
-        id: needs_update
-        run: |
-          CH_TAG="${{ steps.ch_latest.outputs.tag }}"
-          CURRENT_TAG="${{ steps.current.outputs.tag }}"
-
-          # Derive what the SDK tag would be for the current CH release (vX.Y -> vX.Y.0)
-          SDK_TAG="v$(echo "$CH_TAG" | sed 's/^v//' | sed 's/$/.0/')"
-
-          # Check if the SDK tag already exists in the repo
-          if git ls-remote --tags origin "refs/tags/${SDK_TAG}" | grep -q .; then
-            TAG_EXISTS=true
-          else
-            TAG_EXISTS=false
-          fi
-
-          if [ "$CH_TAG" = "$CURRENT_TAG" ] && [ "$TAG_EXISTS" = "true" ]; then
+          # Also covers a previous run that synced but failed before tagging.
+          if [ "$TAG" = "$CURRENT" ] && git rev-parse -q --verify "refs/tags/$SDK_TAG" >/dev/null; then
             echo "needed=false" >> "$GITHUB_OUTPUT"
-            echo "Already up to date with ${CH_TAG} and tag ${SDK_TAG} exists, nothing to do."
+            echo "Already up to date."
           else
             echo "needed=true" >> "$GITHUB_OUTPUT"
-            if [ "$CH_TAG" != "$CURRENT_TAG" ]; then
-              echo "Update needed: CH version changed ${CURRENT_TAG} -> ${CH_TAG}"
-            else
-              echo "Update needed: SDK tag ${SDK_TAG} does not exist yet"
-            fi
           fi
 
-      - name: Install Java
-        if: steps.needs_update.outputs.needed == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
       - name: Install Rust toolchain
-        if: steps.needs_update.outputs.needed == 'true'
+        if: steps.release.outputs.needed == 'true'
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt
+          components: rustfmt, clippy
 
-      - name: Cache Rust dependencies
-        if: steps.needs_update.outputs.needed == 'true'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+      - name: Regenerate SDK
+        if: steps.release.outputs.needed == 'true'
+        env:
+          CH_TAG: ${{ steps.release.outputs.tag }}
+        run: ./regenerate.sh
 
-      - name: Run regenerate.sh
-        if: steps.needs_update.outputs.needed == 'true'
+      # The push below doesn't trigger CI (pushes made with GITHUB_TOKEN never
+      # start workflows), so run the same checks here before releasing.
+      - name: Lint and test
+        if: steps.release.outputs.needed == 'true'
         run: |
-          chmod +x regenerate.sh
-          ./regenerate.sh
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
 
-      - name: Derive SDK version from Cloud Hypervisor tag
-        if: steps.needs_update.outputs.needed == 'true'
-        id: sdk_version
+      - name: Commit, tag and release
+        if: steps.release.outputs.needed == 'true'
+        env:
+          CH_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          # Convert vX.Y -> X.Y.0  (e.g. v51.0 -> 51.0.0)
-          CH_TAG="${{ steps.ch_latest.outputs.tag }}"
-          SEMVER=$(echo "$CH_TAG" | sed 's/^v//' | sed 's/$/\.0/')
-          echo "version=$SEMVER" >> "$GITHUB_OUTPUT"
-          echo "Derived SDK version: $SEMVER"
+          SDK_TAG="v$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
 
-      - name: Bump version in Cargo.toml
-        if: steps.needs_update.outputs.needed == 'true'
-        run: |
-          sed -i 's/^version = ".*"/version = "${{ steps.sdk_version.outputs.version }}"/' Cargo.toml
-
-      - name: Update README
-        if: steps.needs_update.outputs.needed == 'true'
-        run: |
-          CH_TAG="${{ steps.ch_latest.outputs.tag }}"
-          SDK_TAG="v${{ steps.sdk_version.outputs.version }}"
-          REPO="${{ github.repository }}"
-
-          # Update the shields.io badge
-          sed -i "s|cloud--hypervisor-v[^-]*-blue|cloud--hypervisor-${SDK_TAG}-blue|g" README.md
-          sed -i "s|/releases/tag/v[0-9.]*)|/releases/tag/${CH_TAG})|g" README.md
-
-          # Replace everything between the install markers
-          NEW_INSTALL="**Pin to the latest release (Cloud Hypervisor ${CH_TAG}):**\n\`\`\`toml\n[dependencies]\ncloud-hypervisor-sdk = { git = \"https://github.com/${REPO}\", tag = \"${SDK_TAG}\" }\n\`\`\`\n\n**Always use latest main:**\n\`\`\`toml\n[dependencies]\ncloud-hypervisor-sdk = { git = \"https://github.com/${REPO}\", branch = \"main\" }\n\`\`\`"
-          perl -i -0pe "s|(?<=<!-- BEGIN INSTALL -->\n).*(?=\n<!-- END INSTALL -->)|${NEW_INSTALL}|s" README.md
-
-      - name: Commit and push changes
-        if: steps.needs_update.outputs.needed == 'true'
-        run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "chore: sync with Cloud Hypervisor ${{ steps.ch_latest.outputs.tag }}"
-          git push origin main
+          if git diff --cached --quiet; then
+            echo "Generated code is unchanged, tagging the current commit."
+          else
+            git commit -m "chore: sync with Cloud Hypervisor ${CH_TAG}"
+            git push origin HEAD:main
+          fi
 
-      - name: Create and push tag
-        if: steps.needs_update.outputs.needed == 'true'
+          git tag -a "$SDK_TAG" -m "Release $SDK_TAG (Cloud Hypervisor ${CH_TAG})"
+          git push origin "$SDK_TAG"
+
+          gh release create "$SDK_TAG" --title "$SDK_TAG" --verify-tag --generate-notes --notes "$(cat <<EOF
+          ## cloud-hypervisor-sdk ${SDK_TAG}
+
+          Automatically synced with **Cloud Hypervisor ${CH_TAG}**.
+
+          \`\`\`toml
+          cloud-hypervisor-sdk = { git = "https://github.com/${GH_REPO}", tag = "${SDK_TAG}" }
+          \`\`\`
+          EOF
+          )"
+
+      - name: Close resolved failure issues
+        if: success() && steps.release.outputs.needed == 'true'
         run: |
-          TAG="v${{ steps.sdk_version.outputs.version }}"
-          git tag -a "$TAG" -m "Release $TAG (Cloud Hypervisor ${{ steps.ch_latest.outputs.tag }})"
-          git push origin "$TAG"
+          gh issue list --state open --search "Sync with Cloud Hypervisor in:title" --json number,title \
+            --jq '.[] | select(.title | test("^Sync with Cloud Hypervisor .* failed$")) | .number' |
+            while read -r n; do
+              gh issue close "$n" --comment "Resolved: ${{ github.server_url }}/${GH_REPO}/actions/runs/${{ github.run_id }}"
+            done
 
-      - name: Create GitHub Release
-        if: steps.needs_update.outputs.needed == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.sdk_version.outputs.version }}
-          name: v${{ steps.sdk_version.outputs.version }}
-          generate_release_notes: true
-          body: |
-            ## cloud-hypervisor-sdk v${{ steps.sdk_version.outputs.version }}
+      # A failed sync used to go unnoticed until the schedule was disabled.
+      # Open one issue per failing release (later failures don't add noise).
+      - name: Report failure
+        if: failure()
+        env:
+          CH_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          TITLE="Sync with Cloud Hypervisor ${CH_TAG:-release} failed"
+          RUN_URL="${{ github.server_url }}/${GH_REPO}/actions/runs/${{ github.run_id }}"
+          EXISTING=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ -n "$EXISTING" ]; then
+            echo "Issue #$EXISTING already tracks this failure."
+            exit 0
+          fi
+          gh issue create --title "$TITLE" --body "$(cat <<EOF
+          The scheduled sync failed: $RUN_URL
 
-            Automatically synced with **Cloud Hypervisor ${{ steps.ch_latest.outputs.tag }}**.
+          To fix it locally:
 
-            ### Usage
+          \`\`\`sh
+          CH_TAG=${CH_TAG} ./regenerate.sh
+          cargo clippy --all-targets -- -D warnings && cargo test
+          \`\`\`
 
-            **Pin to this release:**
-            ```toml
-            cloud-hypervisor-sdk = { git = "https://github.com/${{ github.repository }}", tag = "v${{ steps.sdk_version.outputs.version }}" }
-            ```
-
-            **Always use latest main:**
-            ```toml
-            cloud-hypervisor-sdk = { git = "https://github.com/${{ github.repository }}", branch = "main" }
-            ```
+          Update hand-written code (\`src/machine.rs\`, \`examples/\`) for any API changes and merge the result to \`main\`. The next sync run then tags and releases the SDK and closes this issue.
+          EOF
+          )"

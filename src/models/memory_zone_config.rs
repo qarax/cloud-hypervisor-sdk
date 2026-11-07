@@ -35,6 +35,8 @@ pub struct MemoryZoneConfig {
     pub hotplugged_size: Option<i64>,
     #[serde(rename = "prefault", skip_serializing_if = "Option::is_none")]
     pub prefault: Option<bool>,
+    #[serde(rename = "reserve", skip_serializing_if = "Option::is_none")]
+    pub reserve: Option<bool>,
 }
 
 impl MemoryZoneConfig {
@@ -51,6 +53,7 @@ impl MemoryZoneConfig {
             hotplug_size: None,
             hotplugged_size: None,
             prefault: None,
+            reserve: None,
         }
     }
 }

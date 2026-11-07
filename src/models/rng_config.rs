@@ -13,14 +13,26 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RngConfig {
+    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
+    pub pci_segment: Option<i16>,
+    #[serde(rename = "pci_device_id", skip_serializing_if = "Option::is_none")]
+    pub pci_device_id: Option<u8>,
+    #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
+    pub iommu: Option<models::IommuType>,
     #[serde(rename = "src")]
     pub src: String,
-    #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
-    pub iommu: Option<bool>,
 }
 
 impl RngConfig {
     pub fn new(src: String) -> RngConfig {
-        RngConfig { src, iommu: None }
+        RngConfig {
+            id: None,
+            pci_segment: None,
+            pci_device_id: None,
+            iommu: None,
+            src,
+        }
     }
 }

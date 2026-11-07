@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **hugepages** | Option<**bool**> |  | [optional][default to false]
 **hugepage_size** | Option<**i64**> |  | [optional]
 **prefault** | Option<**bool**> |  | [optional][default to false]
+**reserve** | Option<**bool**> |  | [optional][default to false]
 **thp** | Option<**bool**> |  | [optional][default to true]
 **zones** | Option<[**Vec<models::MemoryZoneConfig>**](MemoryZoneConfig.md)> |  | [optional]
 

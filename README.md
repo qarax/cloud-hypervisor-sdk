@@ -1,6 +1,6 @@
 # cloud-hypervisor-sdk
 
-[![Cloud Hypervisor](https://img.shields.io/badge/cloud--hypervisor-v51.1.0-blue)](https://github.com/cloud-hypervisor/cloud-hypervisor/releases/tag/v51.1)
+[![Cloud Hypervisor](https://img.shields.io/badge/cloud--hypervisor-v54.0.0-blue)](https://github.com/cloud-hypervisor/cloud-hypervisor/releases/tag/v54.0)
 [![CI](https://github.com/qarax/cloud-hypervisor-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/qarax/cloud-hypervisor-sdk/actions/workflows/ci.yml)
 
 A Rust SDK for [Cloud Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor), providing a high-level API for managing virtual machines through Cloud Hypervisor's HTTP API.
@@ -24,10 +24,10 @@ This means if you know which Cloud Hypervisor version you're running, you can de
 ## Installation
 
 <!-- BEGIN INSTALL -->
-**Pin to the latest release (Cloud Hypervisor v51.1):**
+**Pin to the latest release (Cloud Hypervisor v54.0):**
 ```toml
 [dependencies]
-cloud-hypervisor-sdk = { git = "https://github.com/qarax/cloud-hypervisor-sdk", tag = "v51.1.0" }
+cloud-hypervisor-sdk = { git = "https://github.com/qarax/cloud-hypervisor-sdk", tag = "v54.0.0" }
 ```
 
 **Always use latest main:**
@@ -117,17 +117,21 @@ The SDK models are generated from Cloud Hypervisor's OpenAPI spec. To regenerate
 
 ```bash
 ./regenerate.sh
+# or a specific release:
+CH_TAG=v54.0 ./regenerate.sh
 ```
 
 This will:
-1. Fetch the latest Cloud Hypervisor release tag from GitHub
+1. Resolve the Cloud Hypervisor release (`CH_TAG`, default: latest)
 2. Download the corresponding OpenAPI spec
-3. Download the latest OpenAPI Generator
+3. Download the OpenAPI Generator version pinned in `openapitools.json`
 4. Regenerate `src/models/` and `docs/`
-5. Apply patches for known generator bugs
-6. Build and verify
+5. Update `.cloud-hypervisor-version`, the `Cargo.toml` version and this README
+6. Build everything, including the examples
 
-Regeneration also runs automatically via GitHub Actions whenever a new Cloud Hypervisor release is published.
+Regeneration also runs automatically: the [sync workflow](.github/workflows/sync.yml) checks for a new Cloud Hypervisor release daily, regenerates, runs clippy and the tests, then tags and releases the SDK. If a release changes the API in a way that breaks the hand-written code, the workflow opens an issue instead; regenerate locally, fix the code and merge it, and the next run publishes the release.
+
+To bump the generator, change the version in `openapitools.json` and regenerate.
 
 ## Architecture
 

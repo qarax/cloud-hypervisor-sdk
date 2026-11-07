@@ -3,7 +3,8 @@ use std::{borrow::Cow, path::PathBuf};
 use cloud_hypervisor_sdk::{
     machine::{Machine, MachineConfig},
     models::{
-        ConsoleConfig, CpusConfig, DiskConfig, PayloadConfig, VmConfig, memory_config::MemoryConfig,
+        ConsoleMode, CpusConfig, DiskConfig, PayloadConfig, SerialConfig, VmConfig,
+        memory_config::MemoryConfig,
     },
 };
 use uuid::Uuid;
@@ -47,12 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let memory_config = MemoryConfig::new(512 * 1024 * 1024);
 
     // Configure serial console to output to the tmux terminal
-    let serial_config = ConsoleConfig {
-        mode: cloud_hypervisor_sdk::models::console_config::Mode::Tty,
-        file: None,
-        socket: None,
-        iommu: None,
-    };
+    let serial_config = SerialConfig::new(ConsoleMode::Tty);
 
     let vm_config = VmConfig {
         cpus: Some(Box::new(cpus_config)),

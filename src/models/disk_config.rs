@@ -20,7 +20,7 @@ pub struct DiskConfig {
     #[serde(rename = "direct", skip_serializing_if = "Option::is_none")]
     pub direct: Option<bool>,
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
-    pub iommu: Option<bool>,
+    pub iommu: Option<models::IommuType>,
     #[serde(rename = "num_queues", skip_serializing_if = "Option::is_none")]
     pub num_queues: Option<i32>,
     #[serde(rename = "queue_size", skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,9 @@ pub struct DiskConfig {
     )]
     pub rate_limiter_config: Option<Box<models::RateLimiterConfig>>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
-    pub pci_segment: Option<i32>,
+    pub pci_segment: Option<i16>,
+    #[serde(rename = "pci_device_id", skip_serializing_if = "Option::is_none")]
+    pub pci_device_id: Option<u8>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(rename = "serial", skip_serializing_if = "Option::is_none")]
@@ -49,7 +51,11 @@ pub struct DiskConfig {
     #[serde(rename = "sparse", skip_serializing_if = "Option::is_none")]
     pub sparse: Option<bool>,
     #[serde(rename = "image_type", skip_serializing_if = "Option::is_none")]
-    pub image_type: Option<ImageType>,
+    pub image_type: Option<models::ImageType>,
+    #[serde(rename = "lock_granularity", skip_serializing_if = "Option::is_none")]
+    pub lock_granularity: Option<models::LockGranularity>,
+    #[serde(rename = "guest_block_size", skip_serializing_if = "Option::is_none")]
+    pub guest_block_size: Option<i32>,
 }
 
 impl DiskConfig {
@@ -65,6 +71,7 @@ impl DiskConfig {
             vhost_socket: None,
             rate_limiter_config: None,
             pci_segment: None,
+            pci_device_id: None,
             id: None,
             serial: None,
             rate_limit_group: None,
@@ -72,26 +79,8 @@ impl DiskConfig {
             backing_files: None,
             sparse: None,
             image_type: None,
+            lock_granularity: None,
+            guest_block_size: None,
         }
-    }
-}
-///
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum ImageType {
-    #[serde(rename = "FixedVhd")]
-    FixedVhd,
-    #[serde(rename = "Qcow2")]
-    Qcow2,
-    #[serde(rename = "Raw")]
-    Raw,
-    #[serde(rename = "Vhdx")]
-    Vhdx,
-    #[serde(rename = "Unknown")]
-    Unknown,
-}
-
-impl Default for ImageType {
-    fn default() -> ImageType {
-        Self::FixedVhd
     }
 }

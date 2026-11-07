@@ -13,6 +13,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BalloonConfig {
+    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
+    pub pci_segment: Option<i16>,
+    #[serde(rename = "pci_device_id", skip_serializing_if = "Option::is_none")]
+    pub pci_device_id: Option<u8>,
+    #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
+    pub iommu: Option<models::IommuType>,
     #[serde(rename = "size")]
     pub size: i64,
     /// Deflate balloon when the guest is under memory pressure.
@@ -29,6 +37,10 @@ pub struct BalloonConfig {
 impl BalloonConfig {
     pub fn new(size: i64) -> BalloonConfig {
         BalloonConfig {
+            id: None,
+            pci_segment: None,
+            pci_device_id: None,
+            iommu: None,
             size,
             deflate_on_oom: None,
             free_page_reporting: None,
