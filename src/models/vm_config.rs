@@ -32,26 +32,30 @@ pub struct VmConfig {
     pub balloon: Option<Box<models::BalloonConfig>>,
     #[serde(rename = "fs", skip_serializing_if = "Option::is_none")]
     pub fs: Option<Vec<models::FsConfig>>,
+    #[serde(rename = "generic_vhost_user", skip_serializing_if = "Option::is_none")]
+    pub generic_vhost_user: Option<Vec<models::GenericVhostUserConfig>>,
     #[serde(rename = "pmem", skip_serializing_if = "Option::is_none")]
     pub pmem: Option<Vec<models::PmemConfig>>,
     #[serde(rename = "serial", skip_serializing_if = "Option::is_none")]
-    pub serial: Option<Box<models::ConsoleConfig>>,
+    pub serial: Option<Box<models::SerialConfig>>,
     #[serde(rename = "console", skip_serializing_if = "Option::is_none")]
     pub console: Option<Box<models::ConsoleConfig>>,
     #[serde(rename = "debug_console", skip_serializing_if = "Option::is_none")]
     pub debug_console: Option<Box<models::DebugConsoleConfig>>,
     #[serde(rename = "devices", skip_serializing_if = "Option::is_none")]
     pub devices: Option<Vec<models::DeviceConfig>>,
+    #[serde(rename = "user_devices", skip_serializing_if = "Option::is_none")]
+    pub user_devices: Option<Vec<models::UserDeviceConfig>>,
     #[serde(rename = "vdpa", skip_serializing_if = "Option::is_none")]
     pub vdpa: Option<Vec<models::VdpaConfig>>,
     #[serde(rename = "vsock", skip_serializing_if = "Option::is_none")]
     pub vsock: Option<Box<models::VsockConfig>>,
     #[serde(rename = "numa", skip_serializing_if = "Option::is_none")]
     pub numa: Option<Vec<models::NumaConfig>>,
-    #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
-    pub iommu: Option<bool>,
     #[serde(rename = "watchdog", skip_serializing_if = "Option::is_none")]
     pub watchdog: Option<bool>,
+    #[serde(rename = "rtc", skip_serializing_if = "Option::is_none")]
+    pub rtc: Option<Box<models::RtcConfig>>,
     #[serde(rename = "pvpanic", skip_serializing_if = "Option::is_none")]
     pub pvpanic: Option<bool>,
     #[serde(rename = "pci_segments", skip_serializing_if = "Option::is_none")]
@@ -79,16 +83,18 @@ impl VmConfig {
             rng: None,
             balloon: None,
             fs: None,
+            generic_vhost_user: None,
             pmem: None,
             serial: None,
             console: None,
             debug_console: None,
             devices: None,
+            user_devices: None,
             vdpa: None,
             vsock: None,
             numa: None,
-            iommu: None,
             watchdog: None,
+            rtc: None,
             pvpanic: None,
             pci_segments: None,
             platform: None,

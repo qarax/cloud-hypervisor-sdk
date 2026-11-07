@@ -18,9 +18,11 @@ pub struct VdpaConfig {
     #[serde(rename = "num_queues")]
     pub num_queues: i32,
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
-    pub iommu: Option<bool>,
+    pub iommu: Option<models::IommuType>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
-    pub pci_segment: Option<i32>,
+    pub pci_segment: Option<i16>,
+    #[serde(rename = "pci_device_id", skip_serializing_if = "Option::is_none")]
+    pub pci_device_id: Option<u8>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
 }
@@ -32,6 +34,7 @@ impl VdpaConfig {
             num_queues,
             iommu: None,
             pci_segment: None,
+            pci_device_id: None,
             id: None,
         }
     }

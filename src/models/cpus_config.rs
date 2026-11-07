@@ -29,6 +29,8 @@ pub struct CpusConfig {
     pub affinity: Option<Vec<models::CpuAffinity>>,
     #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
     pub features: Option<Box<models::CpuFeatures>>,
+    #[serde(rename = "core_scheduling", skip_serializing_if = "Option::is_none")]
+    pub core_scheduling: Option<models::CoreSchedulingMode>,
 }
 
 impl CpusConfig {
@@ -42,6 +44,7 @@ impl CpusConfig {
             nested: None,
             affinity: None,
             features: None,
+            core_scheduling: None,
         }
     }
 }

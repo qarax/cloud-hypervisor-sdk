@@ -1,151 +1,127 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-# Regenerate cloud-hypervisor SDK from OpenAPI spec
-# This script downloads the OpenAPI spec and generator, then regenerates the SDK
+# Regenerate the Cloud Hypervisor SDK models from the upstream OpenAPI spec.
+#
+# This is the same script the sync workflow runs, so a local run produces the
+# same result as CI.
+#
+# Environment:
+#   CH_TAG                     Cloud Hypervisor release to generate from
+#                              (default: the latest release)
+#   OPENAPI_GENERATOR_VERSION  openapi-generator version (default: the version
+#                              pinned in openapitools.json)
+#   GITHUB_TOKEN               optional, authenticates GitHub API requests
+#
+# Hand-written code (src/lib.rs, src/machine.rs, src/client.rs, src/error.rs,
+# Cargo.toml, examples/) is protected by .openapi-generator-ignore.
 
-SPEC_FILE="cloud-hypervisor.yaml"
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-echo "==> Fetching latest Cloud Hypervisor release tag..."
-if command -v curl >/dev/null 2>&1; then
-    LATEST_TAG=$(curl -sSL "https://api.github.com/repos/cloud-hypervisor/cloud-hypervisor/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-elif command -v wget >/dev/null 2>&1; then
-    LATEST_TAG=$(wget -qO- "https://api.github.com/repos/cloud-hypervisor/cloud-hypervisor/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-else
-    echo "ERROR: Neither curl nor wget found."
-    exit 1
-fi
+UPSTREAM_REPO="cloud-hypervisor/cloud-hypervisor"
 
-if [ -z "$LATEST_TAG" ]; then
-    echo "ERROR: Could not determine latest release tag from GitHub API."
-    exit 1
-fi
-
-echo "    Latest release: $LATEST_TAG"
-SPEC_URL="https://raw.githubusercontent.com/cloud-hypervisor/cloud-hypervisor/${LATEST_TAG}/vmm/src/api/openapi/cloud-hypervisor.yaml"
-
-echo "==> Fetching latest OpenAPI Generator version..."
-if command -v curl >/dev/null 2>&1; then
-    GENERATOR_VERSION=$(curl -sSL "https://api.github.com/repos/OpenAPITools/openapi-generator/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"v\([^"]*\)".*/\1/')
-elif command -v wget >/dev/null 2>&1; then
-    GENERATOR_VERSION=$(wget -qO- "https://api.github.com/repos/OpenAPITools/openapi-generator/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"v\([^"]*\)".*/\1/')
-fi
-
-if [ -z "$GENERATOR_VERSION" ]; then
-    echo "    WARNING: Could not fetch latest generator version, falling back to 7.10.0"
-    GENERATOR_VERSION="7.10.0"
-fi
-
-echo "    Latest OpenAPI Generator: v${GENERATOR_VERSION}"
-GENERATOR_JAR="openapi-generator-cli.jar"
-GENERATOR_URL="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${GENERATOR_VERSION}/openapi-generator-cli-${GENERATOR_VERSION}.jar"
-TEMP_DIR=$(mktemp -d)
-
-# Function to check if command exists
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+	command -v "$1" >/dev/null 2>&1
 }
 
-
-# Function to get openapi-generator command
-get_generator_cmd() {
-    # Check if openapi-generator-cli is available via npm
-    if command_exists openapi-generator-cli; then
-        echo "openapi-generator-cli"
-        return 0
-    fi
-
-    # Check if we have the JAR file locally and it matches the desired version
-    if [ -f ".openapi-generator/$GENERATOR_JAR" ] && [ -f ".openapi-generator/generator-version" ]; then
-        CACHED_VERSION=$(cat ".openapi-generator/generator-version")
-        if [ "$CACHED_VERSION" = "$GENERATOR_VERSION" ]; then
-            echo "java -jar .openapi-generator/$GENERATOR_JAR"
-            return 0
-        fi
-        echo "==> Cached generator version ($CACHED_VERSION) differs from latest ($GENERATOR_VERSION), re-downloading..." >&2
-    fi
-
-    # Download the JAR file
-    echo "==> Downloading OpenAPI Generator v${GENERATOR_VERSION}..." >&2
-    mkdir -p .openapi-generator
-
-    if command_exists curl; then
-        curl -sSL "$GENERATOR_URL" -o ".openapi-generator/$GENERATOR_JAR"
-    elif command_exists wget; then
-        wget -q "$GENERATOR_URL" -O ".openapi-generator/$GENERATOR_JAR"
-    else
-        echo "ERROR: Neither curl nor wget found. Please install one of them." >&2
-        exit 1
-    fi
-
-    echo "$GENERATOR_VERSION" > ".openapi-generator/generator-version"
-    echo "java -jar .openapi-generator/$GENERATOR_JAR"
+# fetch URL [OUTPUT]: fail on HTTP errors instead of saving an error page.
+fetch() {
+	local auth=()
+	if [ -n "${GITHUB_TOKEN:-}" ] && [[ "$1" == https://api.github.com/* ]]; then
+		auth=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+	fi
+	if [ $# -gt 1 ]; then
+		curl -fsSL "${auth[@]}" "$1" -o "$2"
+	else
+		curl -fsSL "${auth[@]}" "$1"
+	fi
 }
 
-# Check for Java
-if ! command_exists java; then
-    echo "ERROR: Java is not installed. Please install Java JRE/JDK (version 8 or later)."
-    echo ""
-    echo "Installation options:"
-    echo "  - Arch Linux: sudo pacman -S jre-openjdk"
-    echo "  - Ubuntu/Debian: sudo apt install default-jre"
-    echo "  - Fedora: sudo dnf install java-latest-openjdk"
-    echo ""
-    echo "Or install openapi-generator-cli via npm:"
-    echo "  npm install -g @openapitools/openapi-generator-cli"
-    exit 1
+for cmd in curl java cargo; do
+	if ! command_exists "$cmd"; then
+		echo "ERROR: $cmd is required." >&2
+		exit 1
+	fi
+done
+
+if [ -z "${CH_TAG:-}" ]; then
+	echo "==> Fetching latest Cloud Hypervisor release tag..."
+	CH_TAG=$(fetch "https://api.github.com/repos/${UPSTREAM_REPO}/releases/latest" |
+		sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)
+	if [ -z "$CH_TAG" ]; then
+		echo "ERROR: Could not determine the latest release tag." >&2
+		exit 1
+	fi
+fi
+echo "    Cloud Hypervisor release: ${CH_TAG}"
+
+# SDK version: vX.Y -> X.Y.0, a full vX.Y.Z is kept as is.
+SDK_VERSION="${CH_TAG#v}"
+if [[ "$SDK_VERSION" =~ ^[0-9]+\.[0-9]+$ ]]; then
+	SDK_VERSION="${SDK_VERSION}.0"
+fi
+if ! [[ "$SDK_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+	echo "ERROR: Cannot derive an SDK version from tag ${CH_TAG}." >&2
+	exit 1
+fi
+SDK_TAG="v${SDK_VERSION}"
+
+# The generator version is pinned so a new generator release can't change the
+# output (or break the build) on its own. Bump it in openapitools.json.
+if [ -z "${OPENAPI_GENERATOR_VERSION:-}" ]; then
+	OPENAPI_GENERATOR_VERSION=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' openapitools.json | head -1)
+fi
+if [ -z "$OPENAPI_GENERATOR_VERSION" ]; then
+	echo "ERROR: No openapi-generator version pinned in openapitools.json." >&2
+	exit 1
+fi
+echo "    openapi-generator: v${OPENAPI_GENERATOR_VERSION}"
+
+GENERATOR_JAR=".openapi-generator/openapi-generator-cli-${OPENAPI_GENERATOR_VERSION}.jar"
+if [ ! -f "$GENERATOR_JAR" ]; then
+	echo "==> Downloading openapi-generator v${OPENAPI_GENERATOR_VERSION}..."
+	mkdir -p .openapi-generator
+	fetch "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${OPENAPI_GENERATOR_VERSION}/openapi-generator-cli-${OPENAPI_GENERATOR_VERSION}.jar" \
+		"${GENERATOR_JAR}.tmp"
+	mv "${GENERATOR_JAR}.tmp" "$GENERATOR_JAR"
 fi
 
-echo "==> Downloading OpenAPI spec from GitHub (tag: ${LATEST_TAG})..."
-if command_exists curl; then
-    curl -sSL "$SPEC_URL" -o "$TEMP_DIR/$SPEC_FILE"
-elif command_exists wget; then
-    wget -q "$SPEC_URL" -O "$TEMP_DIR/$SPEC_FILE"
-else
-    echo "ERROR: Neither curl nor wget found."
-    exit 1
-fi
+TEMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TEMP_DIR"' EXIT
+SPEC_FILE="$TEMP_DIR/cloud-hypervisor.yaml"
 
-GENERATOR_CMD=$(get_generator_cmd)
+echo "==> Downloading OpenAPI spec (${CH_TAG})..."
+fetch "https://raw.githubusercontent.com/${UPSTREAM_REPO}/${CH_TAG}/vmm/src/api/openapi/cloud-hypervisor.yaml" "$SPEC_FILE"
 
-echo "==> Generating SDK with openapi-generator..."
-echo "    Using: $GENERATOR_CMD"
-$GENERATOR_CMD generate \
-    -i "$TEMP_DIR/$SPEC_FILE" \
-    -g rust \
-    -o . \
-    --additional-properties=packageName=cloud-hypervisor-sdk,packageVersion=0.1.0
+echo "==> Generating SDK..."
+java -jar "$GENERATOR_JAR" generate \
+	-i "$SPEC_FILE" \
+	-g rust \
+	-o . \
+	--additional-properties=packageName=cloud-hypervisor-sdk,packageVersion="${SDK_VERSION}"
 
-echo "$LATEST_TAG" > .cloud-hypervisor-version
+echo "==> Updating version metadata..."
+echo "$CH_TAG" >.cloud-hypervisor-version
+sed -i "0,/^version = \".*\"/s//version = \"${SDK_VERSION}\"/" Cargo.toml
 
-echo "==> Applying post-generation patches..."
-
-# Fix mangled inline enum type name for image_type in disk_config.rs
-MANGLED="EnumLeftSquareBracketDoubleQuoteFixedVhdDoubleQuoteCommaDoubleQuoteQcow2DoubleQuoteCommaDoubleQuoteRawDoubleQuoteCommaDoubleQuoteVhdxDoubleQuoteRightSquareBracket"
-sed -i "s/models::${MANGLED}/models::DiskImageType/g" src/models/disk_config.rs
-
-# Register disk_image_type module in mod.rs if not already present
-if ! grep -q "disk_image_type" src/models/mod.rs; then
-    sed -i '/pub mod disk_config;/a pub mod disk_image_type;\npub use self::disk_image_type::DiskImageType;' src/models/mod.rs
-fi
-
-echo "==> Cleaning up..."
-rm -rf "$TEMP_DIR"
+# README: shields.io badge and the install snippet.
+sed -i "s|cloud--hypervisor-v[0-9.]*-blue|cloud--hypervisor-${SDK_TAG}-blue|g" README.md
+sed -i "s|${UPSTREAM_REPO}/releases/tag/v[0-9.]*)|${UPSTREAM_REPO}/releases/tag/${CH_TAG})|g" README.md
+sed -i "/<!-- BEGIN INSTALL -->/,/<!-- END INSTALL -->/{
+	s|(Cloud Hypervisor v[0-9.]*)|(Cloud Hypervisor ${CH_TAG})|
+	s|tag = \"v[0-9.]*\"|tag = \"${SDK_TAG}\"|
+}" README.md
 
 echo "==> Formatting code..."
 cargo fmt
 
-echo "==> Building to verify..."
-cargo build
+echo "==> Building to verify (including examples)..."
+cargo build --all-targets
 
 echo ""
-echo "==> Regeneration complete!"
-echo "    Cloud Hypervisor version: $LATEST_TAG"
-echo "    Custom files (machine.rs, client.rs, error.rs, examples/) were preserved."
-echo "    Generated files (models/, apis/) have been updated."
+echo "==> Regeneration complete: Cloud Hypervisor ${CH_TAG} -> SDK ${SDK_TAG}"
 echo ""
 echo "Next steps:"
 echo "  1. Review changes: git diff"
-echo "  2. Update src/lib.rs if needed to export new models"
-echo "  3. Test: cargo test"
-echo "  4. Run examples to verify: cargo run --example simple_vm"
+echo "  2. Update src/lib.rs, src/machine.rs or examples/ if the API changed"
+echo "  3. Test: cargo clippy --all-targets -- -D warnings && cargo test"

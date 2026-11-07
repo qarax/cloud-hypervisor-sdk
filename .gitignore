@@ -1,3 +1,7 @@
 /target/
 **/*.rs.bk
 Cargo.lock
+
+# openapi-generator jar, downloaded by regenerate.sh
+/.openapi-generator/*.jar
+/.openapi-generator/*.jar.tmp

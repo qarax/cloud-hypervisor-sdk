@@ -31,6 +31,8 @@ pub struct MemoryConfig {
     pub hugepage_size: Option<i64>,
     #[serde(rename = "prefault", skip_serializing_if = "Option::is_none")]
     pub prefault: Option<bool>,
+    #[serde(rename = "reserve", skip_serializing_if = "Option::is_none")]
+    pub reserve: Option<bool>,
     #[serde(rename = "thp", skip_serializing_if = "Option::is_none")]
     pub thp: Option<bool>,
     #[serde(rename = "zones", skip_serializing_if = "Option::is_none")]
@@ -49,6 +51,7 @@ impl MemoryConfig {
             hugepages: None,
             hugepage_size: None,
             prefault: None,
+            reserve: None,
             thp: None,
             zones: None,
         }

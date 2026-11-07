@@ -16,14 +16,18 @@ Method | HTTP request | Description
 [**vm_add_device_put**](DefaultApi.md#vm_add_device_put) | **PUT** /vm.add-device | Add a new device to the VM
 [**vm_add_disk_put**](DefaultApi.md#vm_add_disk_put) | **PUT** /vm.add-disk | Add a new disk to the VM
 [**vm_add_fs_put**](DefaultApi.md#vm_add_fs_put) | **PUT** /vm.add-fs | Add a new virtio-fs device to the VM
+[**vm_add_generic_vhost_user_put**](DefaultApi.md#vm_add_generic_vhost_user_put) | **PUT** /vm.add-generic-vhost-user | Add a new generic vhost-user device to the VM
 [**vm_add_net_put**](DefaultApi.md#vm_add_net_put) | **PUT** /vm.add-net | Add a new network device to the VM
 [**vm_add_pmem_put**](DefaultApi.md#vm_add_pmem_put) | **PUT** /vm.add-pmem | Add a new pmem device to the VM
 [**vm_add_user_device_put**](DefaultApi.md#vm_add_user_device_put) | **PUT** /vm.add-user-device | Add a new userspace device to the VM
 [**vm_add_vdpa_put**](DefaultApi.md#vm_add_vdpa_put) | **PUT** /vm.add-vdpa | Add a new vDPA device to the VM
 [**vm_add_vsock_put**](DefaultApi.md#vm_add_vsock_put) | **PUT** /vm.add-vsock | Add a new vsock device to the VM
+[**vm_balloon_stats_get**](DefaultApi.md#vm_balloon_stats_get) | **GET** /vm.balloon-stats | Get cached statistics from the virtio-balloon device
+[**vm_cancel_migration_put**](DefaultApi.md#vm_cancel_migration_put) | **PUT** /vm.cancel-migration | Cancel an ongoing VM migration
 [**vm_coredump_put**](DefaultApi.md#vm_coredump_put) | **PUT** /vm.coredump | Takes a VM coredump.
 [**vm_counters_get**](DefaultApi.md#vm_counters_get) | **GET** /vm.counters | Get counters from the VM
 [**vm_info_get**](DefaultApi.md#vm_info_get) | **GET** /vm.info | Returns general information about the cloud-hypervisor Virtual Machine (VM) instance.
+[**vm_nmi_put**](DefaultApi.md#vm_nmi_put) | **PUT** /vm.nmi | Inject an NMI.
 [**vm_receive_migration_put**](DefaultApi.md#vm_receive_migration_put) | **PUT** /vm.receive-migration | Receive a VM migration from URL
 [**vm_remove_device_put**](DefaultApi.md#vm_remove_device_put) | **PUT** /vm.remove-device | Remove a device from the VM
 [**vm_resize_disk_put**](DefaultApi.md#vm_resize_disk_put) | **PUT** /vm.resize-disk | Resize a disk
@@ -32,7 +36,6 @@ Method | HTTP request | Description
 [**vm_restore_put**](DefaultApi.md#vm_restore_put) | **PUT** /vm.restore | Restore a VM from a snapshot.
 [**vm_send_migration_put**](DefaultApi.md#vm_send_migration_put) | **PUT** /vm.send-migration | Send a VM migration to URL
 [**vm_snapshot_put**](DefaultApi.md#vm_snapshot_put) | **PUT** /vm.snapshot | Returns a VM snapshot.
-[**vmm_nmi_put**](DefaultApi.md#vmm_nmi_put) | **PUT** /vmm.nmi | Inject an NMI.
 [**vmm_ping_get**](DefaultApi.md#vmm_ping_get) | **GET** /vmm.ping | Ping the VMM to check for API server availability
 
 
@@ -349,6 +352,34 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## vm_add_generic_vhost_user_put
+
+> models::PciDeviceInfo vm_add_generic_vhost_user_put(generic_vhost_user_config)
+Add a new generic vhost-user device to the VM
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**generic_vhost_user_config** | [**GenericVhostUserConfig**](GenericVhostUserConfig.md) | The details of the new generic vhost-user device | [required] |
+
+### Return type
+
+[**models::PciDeviceInfo**](PciDeviceInfo.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## vm_add_net_put
 
 > models::PciDeviceInfo vm_add_net_put(net_config)
@@ -489,6 +520,58 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## vm_balloon_stats_get
+
+> models::BalloonStatsResponse vm_balloon_stats_get()
+Get cached statistics from the virtio-balloon device
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**models::BalloonStatsResponse**](BalloonStatsResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## vm_cancel_migration_put
+
+> vm_cancel_migration_put()
+Cancel an ongoing VM migration
+
+Requests the cancellation of an ongoing migration on a best effort basis. A successful response only indicates that the request was accepted, not that the migration was actually cancelled: The migration may have progressed too far to be stopped. The actual outcome must be observed externally via the event monitor. 
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## vm_coredump_put
 
 > vm_coredump_put(vm_coredump_data)
@@ -563,6 +646,31 @@ No authorization required
 
 - **Content-Type**: Not defined
 - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## vm_nmi_put
+
+> vm_nmi_put()
+Inject an NMI.
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+ (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -786,31 +894,6 @@ No authorization required
 ### HTTP request headers
 
 - **Content-Type**: application/json
-- **Accept**: Not defined
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-
-## vmm_nmi_put
-
-> vmm_nmi_put()
-Inject an NMI.
-
-### Parameters
-
-This endpoint does not need any parameter.
-
-### Return type
-
- (empty response body)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
 - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
