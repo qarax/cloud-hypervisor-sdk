@@ -1,6 +1,6 @@
 [package]
 name = "cloud-hypervisor-sdk"
-version = "54.0.0"
+version = "54.1.0"
 authors = ["Benny Zlotnik"]
 license = "Apache 2.0"
 edition = "2024"
