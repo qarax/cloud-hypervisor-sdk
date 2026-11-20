@@ -15,6 +15,12 @@ use serde::{Deserialize, Serialize};
 pub struct ReceiveMigrationData {
     #[serde(rename = "receiver_url")]
     pub receiver_url: String,
+    /// Deprecated: use external_fds with Vfio targets instead.
+    #[serde(rename = "vfio_fds", skip_serializing_if = "Option::is_none")]
+    pub vfio_fds: Option<Vec<models::RestoredVfioConfig>>,
+    /// Deprecated: use external_fds with an Iommu target instead.
+    #[serde(rename = "iommufd_fd", skip_serializing_if = "Option::is_none")]
+    pub iommufd_fd: Option<i32>,
     /// Directory containing the TLS server certificate (server-cert.pem), the TLS server key (server-key.pem), and the client TLS root CA certificate (ca-cert.pem). TLS is only supported with tcp:<host>:<port> receiver URLs. Recommended for all TCP migrations. Omitting it is only intended for development and testing, as TCP migration is then unencrypted and unauthenticated.
     #[serde(rename = "tls_dir", skip_serializing_if = "Option::is_none")]
     pub tls_dir: Option<String>,
@@ -26,15 +32,29 @@ pub struct ReceiveMigrationData {
         skip_serializing_if = "Option::is_none"
     )]
     pub background_fetch_pages: Option<bool>,
+    /// New output of the serial console, in the mode of the source VM.
+    #[serde(rename = "serial", skip_serializing_if = "Option::is_none")]
+    pub serial: Option<Box<models::SerialConfig>>,
+    /// New output of the virtio console, in the mode of the source VM.
+    #[serde(rename = "console", skip_serializing_if = "Option::is_none")]
+    pub console: Option<Box<models::SerialConfig>>,
+    /// File descriptor entries and counts. The corresponding descriptors must be supplied out of band via SCM_RIGHTS on the API UNIX socket. Do not combine external_fds with legacy FD fields.
+    #[serde(rename = "external_fds", skip_serializing_if = "Option::is_none")]
+    pub external_fds: Option<Vec<models::RestoreConfigExternalFdsInner>>,
 }
 
 impl ReceiveMigrationData {
     pub fn new(receiver_url: String) -> ReceiveMigrationData {
         ReceiveMigrationData {
             receiver_url,
+            vfio_fds: None,
+            iommufd_fd: None,
             tls_dir: None,
             zone_updates: None,
             background_fetch_pages: None,
+            serial: None,
+            console: None,
+            external_fds: None,
         }
     }
 }

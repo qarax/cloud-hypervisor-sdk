@@ -18,19 +18,23 @@ pub struct VmInfo {
     pub config: Box<models::VmConfig>,
     #[serde(rename = "state")]
     pub state: models::VmState,
-    #[serde(rename = "memory_actual_size", skip_serializing_if = "Option::is_none")]
-    pub memory_actual_size: Option<i64>,
+    #[serde(rename = "memory_actual_size")]
+    pub memory_actual_size: i64,
     #[serde(rename = "device_tree", skip_serializing_if = "Option::is_none")]
     pub device_tree: Option<std::collections::HashMap<String, models::DeviceNode>>,
 }
 
 impl VmInfo {
     /// Virtual Machine information
-    pub fn new(config: models::VmConfig, state: models::VmState) -> VmInfo {
+    pub fn new(
+        config: models::VmConfig,
+        state: models::VmState,
+        memory_actual_size: i64,
+    ) -> VmInfo {
         VmInfo {
             config: Box::new(config),
             state,
-            memory_actual_size: None,
+            memory_actual_size,
             device_tree: None,
         }
     }

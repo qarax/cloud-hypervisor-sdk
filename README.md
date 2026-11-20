@@ -1,6 +1,6 @@
 # cloud-hypervisor-sdk
 
-[![Cloud Hypervisor](https://img.shields.io/badge/cloud--hypervisor-v54.1.0-blue)](https://github.com/cloud-hypervisor/cloud-hypervisor/releases/tag/v54.1)
+[![Cloud Hypervisor](https://img.shields.io/badge/cloud--hypervisor-v55.0.0-blue)](https://github.com/cloud-hypervisor/cloud-hypervisor/releases/tag/v55.0)
 [![CI](https://github.com/qarax/cloud-hypervisor-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/qarax/cloud-hypervisor-sdk/actions/workflows/ci.yml)
 
 A Rust SDK for [Cloud Hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor), providing a high-level API for managing virtual machines through Cloud Hypervisor's HTTP API.
@@ -24,10 +24,10 @@ This means if you know which Cloud Hypervisor version you're running, you can de
 ## Installation
 
 <!-- BEGIN INSTALL -->
-**Pin to the latest release (Cloud Hypervisor v54.1):**
+**Pin to the latest release (Cloud Hypervisor v55.0):**
 ```toml
 [dependencies]
-cloud-hypervisor-sdk = { git = "https://github.com/qarax/cloud-hypervisor-sdk", tag = "v54.1.0" }
+cloud-hypervisor-sdk = { git = "https://github.com/qarax/cloud-hypervisor-sdk", tag = "v55.0.0" }
 ```
 
 **Always use latest main:**

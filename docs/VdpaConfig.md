@@ -5,7 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **path** | **String** |  | 
-**num_queues** | **i32** |  | [default to 1]
+**num_queues** | Option<**u16**> |  | [optional][default to 1]
 **iommu** | Option<[**models::IommuType**](IommuType.md)> |  | [optional]
 **pci_segment** | Option<**i16**> |  | [optional]
 **pci_device_id** | Option<**u8**> |  | [optional]

@@ -13,23 +13,28 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CpuTopology {
-    #[serde(rename = "threads_per_core", skip_serializing_if = "Option::is_none")]
-    pub threads_per_core: Option<i32>,
-    #[serde(rename = "cores_per_die", skip_serializing_if = "Option::is_none")]
-    pub cores_per_die: Option<i32>,
-    #[serde(rename = "dies_per_package", skip_serializing_if = "Option::is_none")]
-    pub dies_per_package: Option<i32>,
-    #[serde(rename = "packages", skip_serializing_if = "Option::is_none")]
-    pub packages: Option<i32>,
+    #[serde(rename = "threads_per_core")]
+    pub threads_per_core: i32,
+    #[serde(rename = "cores_per_die")]
+    pub cores_per_die: i32,
+    #[serde(rename = "dies_per_package")]
+    pub dies_per_package: i32,
+    #[serde(rename = "packages")]
+    pub packages: i32,
 }
 
 impl CpuTopology {
-    pub fn new() -> CpuTopology {
+    pub fn new(
+        threads_per_core: i32,
+        cores_per_die: i32,
+        dies_per_package: i32,
+        packages: i32,
+    ) -> CpuTopology {
         CpuTopology {
-            threads_per_core: None,
-            cores_per_die: None,
-            dies_per_package: None,
-            packages: None,
+            threads_per_core,
+            cores_per_die,
+            dies_per_package,
+            packages,
         }
     }
 }

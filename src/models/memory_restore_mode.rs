@@ -18,6 +18,8 @@ pub enum MemoryRestoreMode {
     Copy,
     #[serde(rename = "OnDemand")]
     OnDemand,
+    #[serde(rename = "OnDemandNoBackgroundFetchPages")]
+    OnDemandNoBackgroundFetchPages,
     #[serde(rename = "CopyOnWrite")]
     CopyOnWrite,
 }
@@ -27,6 +29,7 @@ impl std::fmt::Display for MemoryRestoreMode {
         match self {
             Self::Copy => write!(f, "Copy"),
             Self::OnDemand => write!(f, "OnDemand"),
+            Self::OnDemandNoBackgroundFetchPages => write!(f, "OnDemandNoBackgroundFetchPages"),
             Self::CopyOnWrite => write!(f, "CopyOnWrite"),
         }
     }

@@ -13,12 +13,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VmRemoveDevice {
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    #[serde(rename = "id")]
+    pub id: String,
 }
 
 impl VmRemoveDevice {
-    pub fn new() -> VmRemoveDevice {
-        VmRemoveDevice { id: None }
+    pub fn new(id: String) -> VmRemoveDevice {
+        VmRemoveDevice { id }
     }
 }

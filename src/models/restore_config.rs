@@ -22,10 +22,28 @@ pub struct RestoreConfig {
         skip_serializing_if = "Option::is_none"
     )]
     pub memory_restore_mode: Option<models::MemoryRestoreMode>,
+    /// Deprecated: use external_fds with Net targets instead.
+    #[serde(rename = "net_fds", skip_serializing_if = "Option::is_none")]
+    pub net_fds: Option<Vec<models::RestoredNetConfig>>,
+    /// Deprecated: use external_fds with Vfio targets instead.
+    #[serde(rename = "vfio_fds", skip_serializing_if = "Option::is_none")]
+    pub vfio_fds: Option<Vec<models::RestoredVfioConfig>>,
+    /// Deprecated: use external_fds with an Iommu target instead.
+    #[serde(rename = "iommufd_fd", skip_serializing_if = "Option::is_none")]
+    pub iommufd_fd: Option<i32>,
     #[serde(rename = "resume", skip_serializing_if = "Option::is_none")]
     pub resume: Option<bool>,
     #[serde(rename = "zone_updates", skip_serializing_if = "Option::is_none")]
     pub zone_updates: Option<Vec<models::VmMemoryZoneUpdateData>>,
+    /// New output of the serial console, in the mode of the snapshot.
+    #[serde(rename = "serial", skip_serializing_if = "Option::is_none")]
+    pub serial: Option<Box<models::SerialConfig>>,
+    /// New output of the virtio console, in the mode of the snapshot.
+    #[serde(rename = "console", skip_serializing_if = "Option::is_none")]
+    pub console: Option<Box<models::SerialConfig>>,
+    /// File descriptor entries and counts. The corresponding descriptors must be supplied out of band via SCM_RIGHTS on the API UNIX socket. Do not combine external_fds with legacy FD fields.
+    #[serde(rename = "external_fds", skip_serializing_if = "Option::is_none")]
+    pub external_fds: Option<Vec<models::RestoreConfigExternalFdsInner>>,
 }
 
 impl RestoreConfig {
@@ -34,8 +52,14 @@ impl RestoreConfig {
             source_url,
             prefault: None,
             memory_restore_mode: None,
+            net_fds: None,
+            vfio_fds: None,
+            iommufd_fd: None,
             resume: None,
             zone_updates: None,
+            serial: None,
+            console: None,
+            external_fds: None,
         }
     }
 }

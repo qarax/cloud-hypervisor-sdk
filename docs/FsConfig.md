@@ -6,8 +6,8 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **tag** | **String** |  | 
 **socket** | **String** |  | 
-**num_queues** | **i32** |  | [default to 1]
-**queue_size** | **i32** |  | [default to 1024]
+**num_queues** | Option<**u16**> |  | [optional][default to 1]
+**queue_size** | Option<**i32**> |  | [optional][default to 1024]
 **pci_segment** | Option<**i16**> |  | [optional]
 **pci_device_id** | Option<**u8**> |  | [optional]
 **id** | Option<**String**> |  | [optional]

@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+/// DiskConfig : image_type is required unless vhost_user is true.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DiskConfig {
     #[serde(rename = "path", skip_serializing_if = "Option::is_none")]
@@ -22,7 +23,7 @@ pub struct DiskConfig {
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
     pub iommu: Option<models::IommuType>,
     #[serde(rename = "num_queues", skip_serializing_if = "Option::is_none")]
-    pub num_queues: Option<i32>,
+    pub num_queues: Option<u16>,
     #[serde(rename = "queue_size", skip_serializing_if = "Option::is_none")]
     pub queue_size: Option<i32>,
     #[serde(rename = "vhost_user", skip_serializing_if = "Option::is_none")]
@@ -59,6 +60,7 @@ pub struct DiskConfig {
 }
 
 impl DiskConfig {
+    /// image_type is required unless vhost_user is true.
     pub fn new() -> DiskConfig {
         DiskConfig {
             path: None,

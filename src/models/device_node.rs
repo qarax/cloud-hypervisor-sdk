@@ -13,22 +13,25 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DeviceNode {
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    #[serde(rename = "resources", skip_serializing_if = "Option::is_none")]
-    pub resources: Option<Vec<serde_json::Value>>,
-    #[serde(rename = "children", skip_serializing_if = "Option::is_none")]
-    pub children: Option<Vec<String>>,
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "resources")]
+    pub resources: Vec<serde_json::Value>,
+    #[serde(rename = "parent", skip_serializing_if = "Option::is_none")]
+    pub parent: Option<String>,
+    #[serde(rename = "children")]
+    pub children: Vec<String>,
     #[serde(rename = "pci_bdf", skip_serializing_if = "Option::is_none")]
     pub pci_bdf: Option<String>,
 }
 
 impl DeviceNode {
-    pub fn new() -> DeviceNode {
+    pub fn new(id: String, resources: Vec<serde_json::Value>, children: Vec<String>) -> DeviceNode {
         DeviceNode {
-            id: None,
-            resources: None,
-            children: None,
+            id,
+            resources,
+            parent: None,
+            children,
             pci_bdf: None,
         }
     }

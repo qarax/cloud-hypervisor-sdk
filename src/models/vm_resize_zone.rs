@@ -13,18 +13,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VmResizeZone {
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    #[serde(rename = "id")]
+    pub id: String,
     /// desired memory zone size in bytes
-    #[serde(rename = "desired_ram", skip_serializing_if = "Option::is_none")]
-    pub desired_ram: Option<i64>,
+    #[serde(rename = "desired_ram")]
+    pub desired_ram: i64,
 }
 
 impl VmResizeZone {
-    pub fn new() -> VmResizeZone {
-        VmResizeZone {
-            id: None,
-            desired_ram: None,
-        }
+    pub fn new(id: String, desired_ram: i64) -> VmResizeZone {
+        VmResizeZone { id, desired_ram }
     }
 }

@@ -9,6 +9,7 @@
 | Tty | Tty |
 | File | File |
 | Socket | Socket |
+| Tcp | Tcp |
 | Null | Null |
 
 

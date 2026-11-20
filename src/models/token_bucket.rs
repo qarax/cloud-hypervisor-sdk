@@ -11,7 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// TokenBucket : Defines a token bucket with a maximum capacity (_size_), an initial burst size (_one_time_burst_) and an interval for refilling purposes (_refill_time_). The refill-rate is derived from _size_ and _refill_time_, and it is the constant rate at which the tokens replenish. The refill process only starts happening after the initial burst budget is consumed. Consumption from the token bucket is unbounded in speed which allows for bursts bound in size by the amount of tokens available. Once the token bucket is empty, consumption speed is bound by the refill-rate.
+/// TokenBucket : A plain bucket holds _size_ tokens, refills over _refill_time_ milliseconds, and allows initial _one_time_burst_ credit that does not replenish. Available tokens can be consumed at device speed. With bounded bursts, _size_ and _refill_time_ define the sustained rate, and the full initial depth is _burst_rate_ times _burst_seconds_. A peak bucket holds _burst_rate_ tokens and refills at _burst_rate_ tokens/s; requests need both meters. This is a token-bucket envelope, not a strict per-second ceiling, and oversized requests carry debt. Optional _burst_recharge_seconds_ changes idle recharge time without increasing the rate under continuous demand.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TokenBucket {
     /// The total number of tokens this bucket can hold.
@@ -23,15 +23,30 @@ pub struct TokenBucket {
     /// The amount of milliseconds it takes for the bucket to refill.
     #[serde(rename = "refill_time")]
     pub refill_time: i64,
+    /// The peak rate in tokens per second (bytes/s for bandwidth, operations/s for ops). Enables bounded bursts.
+    #[serde(rename = "burst_rate", skip_serializing_if = "Option::is_none")]
+    pub burst_rate: Option<i64>,
+    /// The burst length in seconds, with depth equal to burst_rate times burst_seconds. Requires burst_rate and defaults to 1 when burst_rate is set.
+    #[serde(rename = "burst_seconds", skip_serializing_if = "Option::is_none")]
+    pub burst_seconds: Option<i64>,
+    /// The seconds to regain full burst credit from empty while idle. Requires burst_rate and defaults to burst_rate times burst_seconds divided by the sustained rate.
+    #[serde(
+        rename = "burst_recharge_seconds",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub burst_recharge_seconds: Option<i64>,
 }
 
 impl TokenBucket {
-    /// Defines a token bucket with a maximum capacity (_size_), an initial burst size (_one_time_burst_) and an interval for refilling purposes (_refill_time_). The refill-rate is derived from _size_ and _refill_time_, and it is the constant rate at which the tokens replenish. The refill process only starts happening after the initial burst budget is consumed. Consumption from the token bucket is unbounded in speed which allows for bursts bound in size by the amount of tokens available. Once the token bucket is empty, consumption speed is bound by the refill-rate.
+    /// A plain bucket holds _size_ tokens, refills over _refill_time_ milliseconds, and allows initial _one_time_burst_ credit that does not replenish. Available tokens can be consumed at device speed. With bounded bursts, _size_ and _refill_time_ define the sustained rate, and the full initial depth is _burst_rate_ times _burst_seconds_. A peak bucket holds _burst_rate_ tokens and refills at _burst_rate_ tokens/s; requests need both meters. This is a token-bucket envelope, not a strict per-second ceiling, and oversized requests carry debt. Optional _burst_recharge_seconds_ changes idle recharge time without increasing the rate under continuous demand.
     pub fn new(size: i64, refill_time: i64) -> TokenBucket {
         TokenBucket {
             size,
             one_time_burst: None,
             refill_time,
+            burst_rate: None,
+            burst_seconds: None,
+            burst_recharge_seconds: None,
         }
     }
 }

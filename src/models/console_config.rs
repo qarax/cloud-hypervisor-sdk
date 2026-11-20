@@ -13,10 +13,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConsoleConfig {
+    /// Required if `mode` is `File`. For `Pty`, it holds the path of the PTY once the device has been created.
     #[serde(rename = "file", skip_serializing_if = "Option::is_none")]
     pub file: Option<String>,
+    /// Required if `mode` is `Socket`.
     #[serde(rename = "socket", skip_serializing_if = "Option::is_none")]
     pub socket: Option<String>,
+    /// Required if `mode` is `Tcp`.
+    #[serde(rename = "tcp", skip_serializing_if = "Option::is_none")]
+    pub tcp: Option<Box<models::TcpConsoleConfig>>,
     #[serde(rename = "mode")]
     pub mode: models::ConsoleMode,
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
@@ -34,6 +39,7 @@ impl ConsoleConfig {
         ConsoleConfig {
             file: None,
             socket: None,
+            tcp: None,
             mode,
             iommu: None,
             id: None,

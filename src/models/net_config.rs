@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 pub struct NetConfig {
     #[serde(rename = "tap", skip_serializing_if = "Option::is_none")]
     pub tap: Option<String>,
-    /// IPv4 or IPv6 address
+    /// IPv4 or IPv6 address. If omitted, no address is assigned to the TAP device.
     #[serde(rename = "ip", skip_serializing_if = "Option::is_none")]
     pub ip: Option<String>,
     /// Must be a valid IPv4 netmask if ip is an IPv4 address or a valid IPv6 netmask if ip is an IPv6 address.
@@ -30,7 +30,7 @@ pub struct NetConfig {
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
     pub iommu: Option<models::IommuType>,
     #[serde(rename = "num_queues", skip_serializing_if = "Option::is_none")]
-    pub num_queues: Option<i32>,
+    pub num_queues: Option<u16>,
     #[serde(rename = "queue_size", skip_serializing_if = "Option::is_none")]
     pub queue_size: Option<i32>,
     #[serde(rename = "vhost_user", skip_serializing_if = "Option::is_none")]
@@ -38,7 +38,7 @@ pub struct NetConfig {
     #[serde(rename = "vhost_socket", skip_serializing_if = "Option::is_none")]
     pub vhost_socket: Option<String>,
     #[serde(rename = "vhost_mode", skip_serializing_if = "Option::is_none")]
-    pub vhost_mode: Option<String>,
+    pub vhost_mode: Option<VhostMode>,
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
@@ -81,5 +81,19 @@ impl NetConfig {
             offload_ufo: None,
             offload_csum: None,
         }
+    }
+}
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum VhostMode {
+    #[serde(rename = "Client")]
+    Client,
+    #[serde(rename = "Server")]
+    Server,
+}
+
+impl Default for VhostMode {
+    fn default() -> VhostMode {
+        Self::Client
     }
 }

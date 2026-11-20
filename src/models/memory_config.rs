@@ -21,8 +21,9 @@ pub struct MemoryConfig {
     pub hotplugged_size: Option<i64>,
     #[serde(rename = "mergeable", skip_serializing_if = "Option::is_none")]
     pub mergeable: Option<bool>,
+    /// ACPI memory hotplug is deprecated and will be removed in a future release. Use VirtioMem instead.
     #[serde(rename = "hotplug_method", skip_serializing_if = "Option::is_none")]
-    pub hotplug_method: Option<String>,
+    pub hotplug_method: Option<HotplugMethod>,
     #[serde(rename = "shared", skip_serializing_if = "Option::is_none")]
     pub shared: Option<bool>,
     #[serde(rename = "hugepages", skip_serializing_if = "Option::is_none")]
@@ -31,6 +32,7 @@ pub struct MemoryConfig {
     pub hugepage_size: Option<i64>,
     #[serde(rename = "prefault", skip_serializing_if = "Option::is_none")]
     pub prefault: Option<bool>,
+    /// Defaults to the value of hugepages.
     #[serde(rename = "reserve", skip_serializing_if = "Option::is_none")]
     pub reserve: Option<bool>,
     #[serde(rename = "thp", skip_serializing_if = "Option::is_none")]
@@ -55,5 +57,19 @@ impl MemoryConfig {
             thp: None,
             zones: None,
         }
+    }
+}
+/// ACPI memory hotplug is deprecated and will be removed in a future release. Use VirtioMem instead.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum HotplugMethod {
+    #[serde(rename = "Acpi")]
+    Acpi,
+    #[serde(rename = "VirtioMem")]
+    VirtioMem,
+}
+
+impl Default for HotplugMethod {
+    fn default() -> HotplugMethod {
+        Self::Acpi
     }
 }

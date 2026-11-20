@@ -19,6 +19,9 @@ pub struct VsockConfig {
     /// Path to UNIX domain socket, used to proxy vsock connections.
     #[serde(rename = "socket")]
     pub socket: String,
+    /// UNIX listener socket type for host initiated connections.
+    #[serde(rename = "socket_type", skip_serializing_if = "Option::is_none")]
+    pub socket_type: Option<SocketType>,
     #[serde(rename = "iommu", skip_serializing_if = "Option::is_none")]
     pub iommu: Option<models::IommuType>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
@@ -34,10 +37,25 @@ impl VsockConfig {
         VsockConfig {
             cid,
             socket,
+            socket_type: None,
             iommu: None,
             pci_segment: None,
             pci_device_id: None,
             id: None,
         }
+    }
+}
+/// UNIX listener socket type for host initiated connections.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SocketType {
+    #[serde(rename = "Stream")]
+    Stream,
+    #[serde(rename = "SeqPacket")]
+    SeqPacket,
+}
+
+impl Default for SocketType {
+    fn default() -> SocketType {
+        Self::Stream
     }
 }

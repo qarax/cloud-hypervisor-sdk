@@ -27,12 +27,8 @@ pub struct PlatformConfig {
         skip_serializing_if = "Option::is_none"
     )]
     pub system_serial_number: Option<String>,
-    #[serde(rename = "serial_number", skip_serializing_if = "Option::is_none")]
-    pub serial_number: Option<String>,
     #[serde(rename = "system_uuid", skip_serializing_if = "Option::is_none")]
     pub system_uuid: Option<String>,
-    #[serde(rename = "uuid", skip_serializing_if = "Option::is_none")]
-    pub uuid: Option<String>,
     #[serde(rename = "oem_strings", skip_serializing_if = "Option::is_none")]
     pub oem_strings: Option<Vec<String>>,
     #[serde(
@@ -53,8 +49,6 @@ pub struct PlatformConfig {
     pub system_sku_number: Option<String>,
     #[serde(rename = "chassis_asset_tag", skip_serializing_if = "Option::is_none")]
     pub chassis_asset_tag: Option<String>,
-    #[serde(rename = "tdx", skip_serializing_if = "Option::is_none")]
-    pub tdx: Option<bool>,
     #[serde(rename = "sev_snp", skip_serializing_if = "Option::is_none")]
     pub sev_snp: Option<bool>,
     #[serde(rename = "iommufd", skip_serializing_if = "Option::is_none")]
@@ -70,9 +64,7 @@ impl PlatformConfig {
             iommu_segments: None,
             iommu_address_width_bits: None,
             system_serial_number: None,
-            serial_number: None,
             system_uuid: None,
-            uuid: None,
             oem_strings: None,
             system_manufacturer: None,
             system_product_name: None,
@@ -80,7 +72,6 @@ impl PlatformConfig {
             system_family: None,
             system_sku_number: None,
             chassis_asset_tag: None,
-            tdx: None,
             sev_snp: None,
             iommufd: None,
             vfio_p2p_dma: None,

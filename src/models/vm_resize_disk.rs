@@ -14,18 +14,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VmResizeDisk {
     /// disk identifier
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    #[serde(rename = "id")]
+    pub id: String,
     /// desired disk size in bytes
-    #[serde(rename = "desired_size", skip_serializing_if = "Option::is_none")]
-    pub desired_size: Option<i64>,
+    #[serde(rename = "desired_size")]
+    pub desired_size: i64,
 }
 
 impl VmResizeDisk {
-    pub fn new() -> VmResizeDisk {
-        VmResizeDisk {
-            id: None,
-            desired_size: None,
-        }
+    pub fn new(id: String, desired_size: i64) -> VmResizeDisk {
+        VmResizeDisk { id, desired_size }
     }
 }

@@ -13,14 +13,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VmSnapshotConfig {
-    #[serde(rename = "destination_url", skip_serializing_if = "Option::is_none")]
-    pub destination_url: Option<String>,
+    #[serde(rename = "destination_url")]
+    pub destination_url: String,
 }
 
 impl VmSnapshotConfig {
-    pub fn new() -> VmSnapshotConfig {
-        VmSnapshotConfig {
-            destination_url: None,
-        }
+    pub fn new(destination_url: String) -> VmSnapshotConfig {
+        VmSnapshotConfig { destination_url }
     }
 }

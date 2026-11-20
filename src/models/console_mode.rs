@@ -24,6 +24,8 @@ pub enum ConsoleMode {
     File,
     #[serde(rename = "Socket")]
     Socket,
+    #[serde(rename = "Tcp")]
+    Tcp,
     #[serde(rename = "Null")]
     Null,
 }
@@ -36,6 +38,7 @@ impl std::fmt::Display for ConsoleMode {
             Self::Tty => write!(f, "Tty"),
             Self::File => write!(f, "File"),
             Self::Socket => write!(f, "Socket"),
+            Self::Tcp => write!(f, "Tcp"),
             Self::Null => write!(f, "Null"),
         }
     }

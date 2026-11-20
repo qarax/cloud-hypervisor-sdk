@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **cid** | **i64** | Guest Vsock CID | 
 **socket** | **String** | Path to UNIX domain socket, used to proxy vsock connections. | 
+**socket_type** | Option<**SocketType**> | UNIX listener socket type for host initiated connections. (enum: Stream, SeqPacket) | [optional][default to Stream]
 **iommu** | Option<[**models::IommuType**](IommuType.md)> |  | [optional]
 **pci_segment** | Option<**i16**> |  | [optional]
 **pci_device_id** | Option<**u8**> |  | [optional]

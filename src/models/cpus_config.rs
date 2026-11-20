@@ -21,6 +21,9 @@ pub struct CpusConfig {
     pub topology: Option<Box<models::CpuTopology>>,
     #[serde(rename = "kvm_hyperv", skip_serializing_if = "Option::is_none")]
     pub kvm_hyperv: Option<bool>,
+    /// Advertise KVM_HINTS_REALTIME to the guest (x86-64 with KVM only)
+    #[serde(rename = "kvm_hint_realtime", skip_serializing_if = "Option::is_none")]
+    pub kvm_hint_realtime: Option<bool>,
     #[serde(rename = "max_phys_bits", skip_serializing_if = "Option::is_none")]
     pub max_phys_bits: Option<i32>,
     #[serde(rename = "nested", skip_serializing_if = "Option::is_none")]
@@ -31,6 +34,11 @@ pub struct CpusConfig {
     pub features: Option<Box<models::CpuFeatures>>,
     #[serde(rename = "core_scheduling", skip_serializing_if = "Option::is_none")]
     pub core_scheduling: Option<models::CoreSchedulingMode>,
+    #[serde(rename = "profile", skip_serializing_if = "Option::is_none")]
+    pub profile: Option<Box<models::CpuProfileConfig>>,
+    /// Experimental x86-64 common CPUID register overrides, applied in order after the selected CPU profile and before per-vCPU adjustments. The caller must ensure host compatibility.
+    #[serde(rename = "x-cpuid-overrides", skip_serializing_if = "Option::is_none")]
+    pub x_cpuid_overrides: Option<Vec<models::CpuidOverride>>,
 }
 
 impl CpusConfig {
@@ -40,11 +48,14 @@ impl CpusConfig {
             max_vcpus,
             topology: None,
             kvm_hyperv: None,
+            kvm_hint_realtime: None,
             max_phys_bits: None,
             nested: None,
             affinity: None,
             features: None,
             core_scheduling: None,
+            profile: None,
+            x_cpuid_overrides: None,
         }
     }
 }

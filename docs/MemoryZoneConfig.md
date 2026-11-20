@@ -15,7 +15,7 @@ Name | Type | Description | Notes
 **hotplug_size** | Option<**i64**> |  | [optional]
 **hotplugged_size** | Option<**i64**> |  | [optional]
 **prefault** | Option<**bool**> |  | [optional][default to false]
-**reserve** | Option<**bool**> |  | [optional][default to false]
+**reserve** | Option<**bool**> | Defaults to the value of hugepages. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

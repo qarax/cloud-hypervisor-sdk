@@ -17,10 +17,10 @@ pub struct FsConfig {
     pub tag: String,
     #[serde(rename = "socket")]
     pub socket: String,
-    #[serde(rename = "num_queues")]
-    pub num_queues: i32,
-    #[serde(rename = "queue_size")]
-    pub queue_size: i32,
+    #[serde(rename = "num_queues", skip_serializing_if = "Option::is_none")]
+    pub num_queues: Option<u16>,
+    #[serde(rename = "queue_size", skip_serializing_if = "Option::is_none")]
+    pub queue_size: Option<i32>,
     #[serde(rename = "pci_segment", skip_serializing_if = "Option::is_none")]
     pub pci_segment: Option<i16>,
     #[serde(rename = "pci_device_id", skip_serializing_if = "Option::is_none")]
@@ -30,12 +30,12 @@ pub struct FsConfig {
 }
 
 impl FsConfig {
-    pub fn new(tag: String, socket: String, num_queues: i32, queue_size: i32) -> FsConfig {
+    pub fn new(tag: String, socket: String) -> FsConfig {
         FsConfig {
             tag,
             socket,
-            num_queues,
-            queue_size,
+            num_queues: None,
+            queue_size: None,
             pci_segment: None,
             pci_device_id: None,
             id: None,

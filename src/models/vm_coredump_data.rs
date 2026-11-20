@@ -13,14 +13,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VmCoredumpData {
-    #[serde(rename = "destination_url", skip_serializing_if = "Option::is_none")]
-    pub destination_url: Option<String>,
+    #[serde(rename = "destination_url")]
+    pub destination_url: String,
 }
 
 impl VmCoredumpData {
-    pub fn new() -> VmCoredumpData {
-        VmCoredumpData {
-            destination_url: None,
-        }
+    pub fn new(destination_url: String) -> VmCoredumpData {
+        VmCoredumpData { destination_url }
     }
 }

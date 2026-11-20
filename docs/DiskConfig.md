@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **readonly** | Option<**bool**> |  | [optional][default to false]
 **direct** | Option<**bool**> |  | [optional][default to false]
 **iommu** | Option<[**models::IommuType**](IommuType.md)> |  | [optional]
-**num_queues** | Option<**i32**> |  | [optional][default to 1]
+**num_queues** | Option<**u16**> |  | [optional][default to 1]
 **queue_size** | Option<**i32**> |  | [optional][default to 128]
 **vhost_user** | Option<**bool**> |  | [optional][default to false]
 **vhost_socket** | Option<**String**> |  | [optional]

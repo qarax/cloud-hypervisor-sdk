@@ -14,24 +14,29 @@ use serde::{Deserialize, Serialize};
 /// VmmPingResponse : Virtual Machine Monitor information
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct VmmPingResponse {
-    #[serde(rename = "build_version", skip_serializing_if = "Option::is_none")]
-    pub build_version: Option<String>,
+    #[serde(rename = "build_version")]
+    pub build_version: String,
     #[serde(rename = "version")]
     pub version: String,
-    #[serde(rename = "pid", skip_serializing_if = "Option::is_none")]
-    pub pid: Option<i64>,
-    #[serde(rename = "features", skip_serializing_if = "Option::is_none")]
-    pub features: Option<Vec<String>>,
+    #[serde(rename = "pid")]
+    pub pid: i64,
+    #[serde(rename = "features")]
+    pub features: Vec<String>,
 }
 
 impl VmmPingResponse {
     /// Virtual Machine Monitor information
-    pub fn new(version: String) -> VmmPingResponse {
+    pub fn new(
+        build_version: String,
+        version: String,
+        pid: i64,
+        features: Vec<String>,
+    ) -> VmmPingResponse {
         VmmPingResponse {
-            build_version: None,
+            build_version,
             version,
-            pid: None,
-            features: None,
+            pid,
+            features,
         }
     }
 }

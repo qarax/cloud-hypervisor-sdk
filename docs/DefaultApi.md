@@ -602,7 +602,7 @@ No authorization required
 
 ## vm_counters_get
 
-> std::collections::HashMap<String, std::collections::HashMap<String, i64>> vm_counters_get()
+> std::collections::HashMap<String, models::VmCountersValue> vm_counters_get()
 Get counters from the VM
 
 ### Parameters
@@ -611,7 +611,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**std::collections::HashMap<String, std::collections::HashMap<String, i64>>**](std::collections::HashMap.md)
+[**std::collections::HashMap<String, models::VmCountersValue>**](VmCounters_value.md)
 
 ### Authorization
 
@@ -735,6 +735,8 @@ No authorization required
 
 > vm_resize_disk_put(vm_resize_disk)
 Resize a disk
+
+Requires a booted VM.
 
 ### Parameters
 

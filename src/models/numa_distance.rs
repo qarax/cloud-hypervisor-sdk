@@ -16,11 +16,11 @@ pub struct NumaDistance {
     #[serde(rename = "destination")]
     pub destination: i32,
     #[serde(rename = "distance")]
-    pub distance: i32,
+    pub distance: u8,
 }
 
 impl NumaDistance {
-    pub fn new(destination: i32, distance: i32) -> NumaDistance {
+    pub fn new(destination: i32, distance: u8) -> NumaDistance {
         NumaDistance {
             destination,
             distance,
